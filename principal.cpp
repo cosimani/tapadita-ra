@@ -42,6 +42,41 @@ void Principal::setVisibleSliders(bool visible)  {
 
 void Principal::cargarCamaras()
 {
+
+#ifdef CAMARAOPENCV
+
+    /* NO FUNCIONA BIEN:
+         * solo entra la primera vez al if cap->isOpen,
+         * no puede soltar el cap, entonces no puede crear nuevos
+         * VideoCapture porque esta ocupado el objeto
+        */
+        int counter = 0;
+        for (int i = 0 ; i < 10 ; i++)  {
+        VideoCapture * cap = new VideoCapture(i);
+        qDebug() << cap->isOpened();
+        if ( cap->isOpened() )  {
+            cap->release();
+                ui->cbCamaras->addItem("camara numero: " + QString::number(i));
+                counter++;
+
+                if ( i == 1 )
+                    ui->cbCamaras->setEnabled(false);
+
+                if ( counter > 0 )  {
+                    ui->cbCamaras->setCurrentIndex(1);
+                    ui->scene->slot_cambiarCamara(1);
+                }
+            }
+        }
+
+        if ( counter == 0 )  {
+            // en linea sig salt ex: "index out of range" de la clase QVector.
+            QMessageBox::critical(this, "No se detectan camaras", "Controle que las camaras esten configuradas.");
+            this->close();
+        }
+
+#else
+
     QList<QCameraInfo> cameras = QCameraInfo::availableCameras();
 
     qDebug() << cameras;
@@ -58,9 +93,11 @@ void Principal::cargarCamaras()
     }
 
     if ( cameras.size() == 0 )  {
-        QMessageBox::critical(this, "No se detectan cámaras", "Controle que las cámaras estén configuradas.");
+        QMessageBox::critical(this, "No se detectan camaras", "Controle que las camaras estan configuradas.");
         this->close();
     }
+
+#endif
 }
 
 void Principal::slot_cbCamarasChanged(int nuevoIndex)

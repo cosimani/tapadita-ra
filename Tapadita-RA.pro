@@ -10,6 +10,8 @@ TEMPLATE = app
 
 DEFINES += NO_DEBUG_ARUCO
 
+DEFINES += CAMARAOPENCV #cuando este definida se enumeraran las camaras con Opencv
+
 # La siguiente macro es para poder crear el Portable instalador. Cambia la carpeta del proyecto .. por .
 #DEFINES += PORTABLE
 
