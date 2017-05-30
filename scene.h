@@ -85,6 +85,9 @@ public:
     ~Scene();
     void actualizarTexturas();
 
+    QTimer *getSceneTimer() const;
+    void setSceneTimer(QTimer *value);
+
 protected:
     void initializeGL();
     void resizeGL( int width, int height );

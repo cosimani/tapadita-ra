@@ -40,6 +40,12 @@ void Principal::setVisibleSliders(bool visible)  {
     ui->cbCamaras->setVisible(visible);
 }
 
+
+void Principal::startTimer()
+{
+    ui->scene->getSceneTimer()->start(10);
+}
+
 void Principal::cargarCamaras()
 {
 

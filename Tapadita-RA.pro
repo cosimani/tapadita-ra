@@ -123,7 +123,14 @@ SOURCES += main.cpp\
            aruco/subpixelcorner.cpp \
     principal.cpp \
     miqlineedit.cpp \
-    database.cpp
+    database.cpp \
+    view/viewcontroller.cpp \
+    view/registerplayer.cpp \
+    view/mibutton.cpp \
+    view/image.cpp \
+    view/profilepicture.cpp \
+    view/micampotexto.cpp \
+    view/inicio.cpp
 
 HEADERS += model.h \
            scene.h \
@@ -144,10 +151,24 @@ HEADERS += model.h \
     logo.h \
     miqlineedit.h \
     database.hpp \
-    common.h
+    common.h \
+    view/viewcontroller.h \
+    view/registerplayer.h \
+    view/mibutton.h \
+    view/image.h \
+    view/profilepicture.h \
+    view/micampotexto.h \
+    view/inicio.h
 
 FORMS += \
-    principal.ui
+    principal.ui \
+    view/viewcontroller.ui \
+    view/registerplayer.ui \
+    view/profilepicture.ui \
+    view/micampotexto.ui \
+    view/inicio.ui
 
 DISTFILES += \
-    README.md
+    README.md \
+    Files/db.sqlite \
+    Files/CameraParameters.yml
