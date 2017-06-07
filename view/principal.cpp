@@ -16,11 +16,8 @@ Principal::Principal(QWidget *parent) :
     this->setFont( QFont( "Tahoma", 8 ) );
 
     connect(ui->scene, SIGNAL(message(QString)), ui->teMessages, SLOT(append(QString)));
-
     connect(ui->rotateCheckBox, SIGNAL(clicked(bool)), ui->rotationVelocitySlider, SLOT(setEnabled(bool)));
-
     connect(ui->cbCamaras, SIGNAL(currentIndexChanged(int)), this, SLOT(slot_cbCamarasChanged(int)));
-
     connect(ui->pbVincular, SIGNAL(clicked(bool)), this, SLOT(slot_vincular()));
     connect(this, SIGNAL(signal_vincular(int,QString,QString)), ui->scene, SLOT(slot_vincular(int,QString,QString)));
 
@@ -46,6 +43,11 @@ void Principal::startTimer()
     ui->scene->getSceneTimer()->start(10);
 }
 
+
+/**
+ * @brief Principal::cargarCamaras metodo que busca las camaras disponibles
+ * y las enumera en cbCamara (checkbox)
+ */
 void Principal::cargarCamaras()
 {
 
@@ -105,6 +107,7 @@ void Principal::cargarCamaras()
 
 #endif
 }
+
 
 void Principal::slot_cbCamarasChanged(int nuevoIndex)
 {

@@ -30,7 +30,7 @@
 
 #include <QSlider>
 
-#include "principal.h"
+#include "view/principal.h"
 
 using namespace cv;
 using namespace std;

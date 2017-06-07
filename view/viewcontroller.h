@@ -1,7 +1,10 @@
 #ifndef VIEWCONTROLLER_H
 #define VIEWCONTROLLER_H
 
+#define CANTIDAD_MARCADORES 64
+
 #include <QWidget>
+#include "database.hpp"
 
 namespace Ui {
 class ViewController;
@@ -22,6 +25,7 @@ private:
      * @brief se llama al crearse el objeto, para setear valores por defecto
      */
     void initDefaultValues();
+    void initDataBase();
 
 private slots:
     void slot_showPrincipal();

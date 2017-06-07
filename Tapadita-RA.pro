@@ -121,8 +121,6 @@ SOURCES += main.cpp\
            aruco/marker.cpp \
            aruco/markerdetector.cpp \
            aruco/subpixelcorner.cpp \
-    principal.cpp \
-    miqlineedit.cpp \
     database.cpp \
     view/viewcontroller.cpp \
     view/registerplayer.cpp \
@@ -130,7 +128,9 @@ SOURCES += main.cpp\
     view/image.cpp \
     view/profilepicture.cpp \
     view/micampotexto.cpp \
-    view/inicio.cpp
+    view/inicio.cpp \
+    view/principal.cpp \
+    view/miqlineedit.cpp
 
 HEADERS += model.h \
            scene.h \
@@ -147,9 +147,7 @@ HEADERS += model.h \
            aruco/marker.h \
            aruco/markerdetector.h \
            aruco/subpixelcorner.h \
-    principal.h \
     logo.h \
-    miqlineedit.h \
     database.hpp \
     common.h \
     view/viewcontroller.h \
@@ -158,15 +156,17 @@ HEADERS += model.h \
     view/image.h \
     view/profilepicture.h \
     view/micampotexto.h \
-    view/inicio.h
+    view/inicio.h \
+    view/principal.h \
+    view/miqlineedit.h
 
 FORMS += \
-    principal.ui \
     view/viewcontroller.ui \
     view/registerplayer.ui \
     view/profilepicture.ui \
     view/micampotexto.ui \
-    view/inicio.ui
+    view/inicio.ui \
+    view/principal.ui
 
 DISTFILES += \
     README.md \

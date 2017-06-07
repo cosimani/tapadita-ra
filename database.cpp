@@ -1,6 +1,7 @@
 #include "database.hpp"
 #include <QDebug>
 #include <QSqlError>
+#include <QSqlRecord>
 #include "common.h"
 
 Database *Database::instance = NULL;
@@ -44,35 +45,163 @@ int Database::checkBase()
 {
     if( this->connectDatabase() )
     {
-        if( database.tables().contains( "vinculos" ) )
+        if( database.tables().contains( "vinculos" ) &&
+                database.tables().contains( "jugadores" ) &&
+                database.tables().contains( "fichas_jugador" ))
         {
             this->disconnectDatabase();
             return 1;
         }
         else
         {
-            QSqlQuery query( database );
-
-            QString queryString( "create table vinculos                            "
-                                 "(                                                "
-                                 "    marker_id      integer         primary key,  "
-                                 "    recurso        varchar(100)    not null,     "
-                                 "    formato_caja   varchar(5)      null          "
-                                 ")" );
-
-            bool ok = query.exec( queryString );
-
-            qDebug() << "metodo checkBase()" << query.lastError() << query.lastQuery();
+            bool qv = createTableVinculos();
+            bool qj = createTableJugadores();
+            bool qf = createTableFichas();
 
             this->disconnectDatabase();
 
-            return ok ? 0 : -1;
+            return qv && qj && qf ? 0 : -1;
         }
     }
     else
     {
+        qDebug() << "ERROR: No se logro conectar a la base";
         return -1;  // No se logro conectar a la base
     }
+}
+
+bool Database::insert_into(QString table, QStringList values)
+{
+    if(!this->connectDatabase()) return false;
+    int cantValues = getNumberOfColumns(table);
+
+    /*
+    if(cantValues != values.size()) {
+        qDebug() << "ERROR: no hay valores para todas las columnas";
+        return false;
+    }*/
+
+    QString query("insert into " + table + " values (");
+    for(int i = 0; i < cantValues; i++) {
+        query.append(values.at(i) + ",");
+    }
+
+    query.remove(query.size() - 1, 1);
+    query.append(");");
+
+    return ejecutarConsulta(query);
+}
+
+#include <QMapIterator>
+#include <QMap>
+
+bool Database::insert_into(QString table, QMap<QString, QString> valuesMap)
+{
+    if(!this->connectDatabase()) return false;
+    int cantValues = getNumberOfColumns(table);
+
+    QString columns(" ( ");
+    QString values(" values ( ");
+    QMapIterator<QString, QString> i(valuesMap);
+    while (i.hasNext()) {
+        i.next();
+//        cout << i.key() << ": " << i.value() << endl;
+        columns.append(i.key() + " ,");
+        values.append(i.value() + " ,");
+    }
+    values.remove(values.size() - 1, 1);
+    columns.remove(columns.size() - 1, 1);
+    columns.append(" ) ");
+    values.append(" );");
+
+    QString insert("insert into "+ table + columns + values);
+//    qDebug() << "insertar:" << insert;
+
+    return ejecutarConsulta(insert);
+}
+
+
+int Database::getNumberOfColumns(QString table)
+{
+    int columns = 0;
+    if( this->connectDatabase() ) {
+        // obtiene info de la tabla que se quiere consultar
+        QSqlQuery query = database.exec( "PRAGMA table_info(" + table + ");" );
+        while ( query.next() ){
+            columns++;
+        }
+        this->disconnectDatabase();
+    }
+    return columns;
+}
+
+bool Database::createTableVinculos()
+{
+    QString queryString( "create table vinculos                            "
+                         "(                                                "
+                         "    marker_id      integer         primary key,  "
+                         "    recurso        varchar(100)    null,         "
+                         "    formato_caja   varchar(5)      null          "
+                         ")" );
+    return Database::getInstance()->ejecutarConsulta(queryString);
+}
+
+bool Database::createTableJugadores()
+{
+    QString queryString( "create table jugadores                                         "
+                         "(                                                              "
+                         "    nro_jugador    integer         primary key AUTOINCREMENT,  "
+                         "    nom_jugador    varchar(100)    not null,                   "
+                         "    foto_perfil    varchar(200)    not null                    "
+                         ")" );
+    return Database::getInstance()->ejecutarConsulta(queryString);
+}
+
+bool Database::createTableFichas()
+{
+    QString queryString( "create table fichas_jugador                                          "
+                         "(                                                                    "
+                         "    marker_id      integer         not null,                         "
+                         "    nro_jugador    integer         not null,                         "
+                         "    PRIMARY KEY(marker_id, nro_jugador),                             "
+                         "    FOREIGN KEY(marker_id)   REFERENCES vinculos(marker_id),         "
+                         "    FOREIGN KEY(nro_jugador) REFERENCES jugadores(nro_jugador)       "
+                         ")" );
+    return Database::getInstance()->ejecutarConsulta(queryString);
+}
+
+bool Database::ejecutarConsulta(QString q)
+{
+    if(!this->connectDatabase()) return false;
+    QSqlQuery query( database );
+    if (!query.exec(q)){
+        qDebug() << "ERROR:" << query.lastError() << query.lastQuery();
+        this->disconnectDatabase();
+        return false;
+    }
+    this->disconnectDatabase();
+    return true;
+}
+
+bool Database::ejecutarConsulta(QString q, QSqlQuery &query)
+{
+    if(!this->connectDatabase()) return false;
+    query = database.exec("");
+    if (!query.exec(q)){
+        qDebug() << "ERROR:" << query.lastError() << query.lastQuery();
+        this->disconnectDatabase();
+        return false;
+    }
+    this->disconnectDatabase();
+    return true;
+}
+
+int Database::getNumberOfRows(QString table)
+{
+    QSqlQuery q;
+    if (!ejecutarConsulta("select count(*) from " + table, q)) return -1;
+    q.next();
+    return q.value(0).toInt();
 }
 
 bool Database::saveVinculo( int marker_id, QString recurso, QString formatoCaja )

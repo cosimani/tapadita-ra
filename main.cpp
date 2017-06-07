@@ -1,5 +1,5 @@
 #include <QApplication>
-#include "principal.h"
+#include "view/principal.h"
 #include "view/viewcontroller.h"
 #include "view/inicio.h"
 

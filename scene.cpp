@@ -58,7 +58,7 @@ Scene::Scene( QWidget *parent ) : QGLWidget( parent ),
 //    sceneTimer->start( milisecondsTimer );
     connect( sceneTimer, SIGNAL( timeout() ), SLOT( slot_updateScene() ) );
 
-    Database::getInstance()->checkBase();
+//    Database::getInstance()->checkBase();
 
 }
 
