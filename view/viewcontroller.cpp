@@ -38,9 +38,12 @@ void ViewController::initDataBase()
         qDebug() << "ERROR: No se pudo conectar con la base de datos";
         this->close();
     }
-
+    qDebug() << "por cargar markers";
     // si ya se cargaron los marcadores, no los vuelvo a cargar
-    if (!Database::getInstance()->getNumberOfRows("vinculos") == CANTIDAD_MARCADORES) {
+    int filas = Database::getInstance()->getNumberOfRows("vinculos");
+    qDebug() << "cantidad de filas:" << filas;
+    if (! (filas == CANTIDAD_MARCADORES) ) {
+    qDebug() << "cargar markers";
     // aca tengo que cargar los datos de los marcadores
         for(int i = 0; i < CANTIDAD_MARCADORES; i++){
             QStringList values;
@@ -48,6 +51,7 @@ void ViewController::initDataBase()
             values.append("null");
             values.append("null");
             Database::getInstance()->insert_into("vinculos", values);
+            qDebug() << "cargar markers adentro" << i;
         }
     }
 }

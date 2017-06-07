@@ -62,6 +62,40 @@ bool Inicio::registrarJugadores(){
                 return false;
         }
     }
+
+    /* TODO:
+     * una vez registrados los jugadores, debo asociarlos con un(os)
+     * marcadores. para ello, tengo que insertar en la tabla
+     * fichas_jugador el id del marcador y el nro de jugador
+     *
+     * VERIFICAR: el marker id va a corresponder con el de la tabla ?
+    */
+
+    QMap <QString, QString> map;
+    QString nro_jugador = QString::number(1);
+    nro_jugador.push_back("'");
+    nro_jugador.push_front("'");
+    QString marker_id = QString::number(51);
+    marker_id.push_back("'");
+    marker_id.push_front("'");
+    map["nro_jugador"] = nro_jugador;
+    map["marker_id"] = marker_id;
+    nro_jugador.clear();
+    marker_id.clear();
+    Database::getInstance()->insert_into("fichas_jugador", map);
+
+    nro_jugador = QString::number(2);
+    nro_jugador.push_back("'");
+    nro_jugador.push_front("'");
+    marker_id = QString::number(17);
+    marker_id.push_back("'");
+    marker_id.push_front("'");
+    map["nro_jugador"] = nro_jugador;
+    map["marker_id"] = marker_id;
+    nro_jugador.clear();
+    marker_id.clear();
+    Database::getInstance()->insert_into("fichas_jugador", map);
+
     return true;
 }
 

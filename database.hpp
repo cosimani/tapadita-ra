@@ -46,6 +46,15 @@ public:
     bool insert_into(QString table, QStringList values);
 
 
+    /**
+     * @brief insert_into inserta en table el mapa que viene como
+     * parametro
+     * @param table es el nombre de tabla
+     * @param values mapa con key-values de la forma:
+     * [nombres de columnas] = "valor a insertar"
+     * @return true si todos lograron insertarse, false si alguno fallo
+     * pero tal vez otros si pudieron insertarse
+     */
     bool insert_into(QString table, QMap<QString, QString> values);
 
     /**
