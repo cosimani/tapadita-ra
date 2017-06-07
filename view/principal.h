@@ -17,6 +17,11 @@ public:
 
     Ui::Principal *ui;  // Lo hice publico para poder acceder al ui desde Scene
 
+    /**
+     * @brief startTimer se llama desde ViewController para activar el timer de scene
+     */
+    void startTimer();
+
 private:
     void cargarCamaras();
 

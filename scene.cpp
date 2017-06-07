@@ -11,7 +11,7 @@
 Scene::Scene( QWidget *parent ) : QGLWidget( parent ),
                                   nCamera( 0 ),
 
-//                                  videoCapture ( new cv::VideoCapture( nCamera ) ),
+                                  videoCapture ( new cv::VideoCapture( nCamera ) ),
 
                                   sceneTimer ( new QTimer ),
                                   milisecondsTimer( 10 ),
@@ -55,10 +55,10 @@ Scene::Scene( QWidget *parent ) : QGLWidget( parent ),
 
     }
 
-    sceneTimer->start( milisecondsTimer );
+//    sceneTimer->start( milisecondsTimer );
     connect( sceneTimer, SIGNAL( timeout() ), SLOT( slot_updateScene() ) );
 
-    Database::getInstance()->checkBase();
+//    Database::getInstance()->checkBase();
 
 }
 
@@ -103,6 +103,16 @@ void Scene::actualizarTexturas()
 
 }
 
+
+QTimer *Scene::getSceneTimer() const
+{
+    return sceneTimer;
+}
+
+void Scene::setSceneTimer(QTimer *value)
+{
+    sceneTimer = value;
+}
 
 void Scene::loadTextures()
 {
