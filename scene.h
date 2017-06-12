@@ -80,6 +80,9 @@ private:
     void decreaseVideosVolume();
     void decreaseVideosVolumeVinculados();
 
+    // jr
+    void addTexture(QString imagen);
+
 public:
     Scene( QWidget *parent = 0 );
     ~Scene();

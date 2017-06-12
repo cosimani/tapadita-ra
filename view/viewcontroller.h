@@ -28,7 +28,7 @@ private:
     void initDataBase();
 
 private slots:
-    void slot_showPrincipal();
+    void slot_showPrincipal(QMap<QString, QString> fichas_jugadores);
 
 signals:
     void sig_startSceneTimer();

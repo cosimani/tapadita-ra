@@ -3,6 +3,37 @@
 
 #include <QDebug>
 
+/* junior del futuro
+ *
+ * TODO:
+ *
+ * 1-ahora que se insertaron en las 3 tablas,
+ * ver como pasarle los datos de las rutas de las fotos
+ * a la clase Principal (o a Scene).
+ *
+ * 2-Despues dibujar la imagen en la tarjeta
+ */
+
+QMap<QString, QString> Inicio::getCurrentPlayers() const
+{
+    return currentPlayers;
+}
+
+void Inicio::setCurrentPlayers(const QMap<QString, QString> &value)
+{
+    currentPlayers = value;
+}
+
+QMap<QString, QString> Inicio::getCurrentFJ() const
+{
+    return currentFJ;
+}
+
+void Inicio::setCurrentFJ(const QMap<QString, QString> &value)
+{
+    currentFJ = value;
+}
+
 Inicio::Inicio(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Inicio)
@@ -40,13 +71,13 @@ bool Inicio::registrarJugadores(){
     qDebug() << ui->gridLayout->count();
 
     qDebug() << "entro a registrarJugador";
+    QMap <QString, QString> map;
     for(int i = 0; i < ui->gridLayout->count();i++){
         RegisterPlayer * rp = qobject_cast<RegisterPlayer *>(ui->gridLayout->itemAt(i)->widget());
         if(rp == 0){
 //            qDebug() << "widget ES null No inserto";
         }else{
 //            qDebug() << "widget distinto de null";
-            QMap <QString, QString> map;
             QString foto_perfil = rp->getPathFotoPerfil();
             foto_perfil.push_back("'");
             foto_perfil.push_front("'");
@@ -64,37 +95,49 @@ bool Inicio::registrarJugadores(){
     }
 
     /* TODO:
+     * controlar que el map tenga nombres validos
+     */
+    // seteo los jugadores actuales
+    setCurrentPlayers(map);
+
+    /* TODO:
      * una vez registrados los jugadores, debo asociarlos con un(os)
      * marcadores. para ello, tengo que insertar en la tabla
      * fichas_jugador el id del marcador y el nro de jugador
      *
+     * Status: terminado
+     *
      * VERIFICAR: el marker id va a corresponder con el de la tabla ?
     */
 
-    QMap <QString, QString> map;
-    QString nro_jugador = QString::number(1);
+    qDebug() << "ejecuto getlastrow";
+    int nplayer = Database::getInstance()->getLastRow("jugadores", "nro_jugador");
+
+    QMap <QString, QString> auxMap;
+    QString nro_jugador = QString::number(nplayer);
     nro_jugador.push_back("'");
     nro_jugador.push_front("'");
     QString marker_id = QString::number(51);
     marker_id.push_back("'");
     marker_id.push_front("'");
-    map["nro_jugador"] = nro_jugador;
-    map["marker_id"] = marker_id;
+    auxMap["nro_jugador"] = nro_jugador;
+    auxMap["marker_id"] = marker_id;
     nro_jugador.clear();
     marker_id.clear();
-    Database::getInstance()->insert_into("fichas_jugador", map);
+    Database::getInstance()->insert_into("fichas_jugador", auxMap);
 
-    nro_jugador = QString::number(2);
+    nro_jugador = QString::number(nplayer - 1);
     nro_jugador.push_back("'");
     nro_jugador.push_front("'");
     marker_id = QString::number(17);
     marker_id.push_back("'");
     marker_id.push_front("'");
-    map["nro_jugador"] = nro_jugador;
-    map["marker_id"] = marker_id;
+    auxMap["nro_jugador"] = nro_jugador;
+    auxMap["marker_id"] = marker_id;
     nro_jugador.clear();
     marker_id.clear();
-    Database::getInstance()->insert_into("fichas_jugador", map);
+    Database::getInstance()->insert_into("fichas_jugador", auxMap);
+    setCurrentFJ(auxMap);
 
     return true;
 }
@@ -107,5 +150,5 @@ void Inicio::slot_start(bool push)
     }
 
     qDebug() << "slot_start, se pulso button";
-    emit sig_start();
+    emit sig_start(this->getCurrentFJ());
 }

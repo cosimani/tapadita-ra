@@ -3,6 +3,12 @@
 #include <QKeyEvent>
 #include <QCameraInfo>
 #include <QMessageBox>
+#include "view/viewcontroller.h"
+
+QMap<QString, QString> Principal::getFichas_jugadores() const
+{
+    return fichas_jugadores;
+}
 
 Principal::Principal(QWidget *parent) :
     QWidget(parent),
@@ -20,6 +26,10 @@ Principal::Principal(QWidget *parent) :
     connect(ui->cbCamaras, SIGNAL(currentIndexChanged(int)), this, SLOT(slot_cbCamarasChanged(int)));
     connect(ui->pbVincular, SIGNAL(clicked(bool)), this, SLOT(slot_vincular()));
     connect(this, SIGNAL(signal_vincular(int,QString,QString)), ui->scene, SLOT(slot_vincular(int,QString,QString)));
+
+//    connect(v , SIGNAL(sig_principalVisible()), this, SLOT(slot_principalVisible()));
+
+    qDebug() << "princial visible?:" << this->isVisible();
 
     this->cargarCamaras();
 }
@@ -40,7 +50,20 @@ void Principal::setVisibleSliders(bool visible)  {
 
 void Principal::startTimer()
 {
+    // cuando se llama a este metodo, comienza a estar visible esta clase
     ui->scene->getSceneTimer()->start(10);
+}
+
+void Principal::setFichas_jugadores(QMap<QString, QString> fichas_jugadores)
+{
+    // pruebo poner para que detecte los marcadores
+    // y en la clase scene tengo que poner que
+    // dibuja una imagen llame al metodo drawsheet (algo asi)
+    // con una imagen por defecto que le paso
+    ui->cbMostrarId->setChecked(true);
+
+
+    this->fichas_jugadores = fichas_jugadores;
 }
 
 
@@ -132,5 +155,6 @@ void Principal::slot_vincular()
     ui->scene->actualizarTexturas();
     ui->cbModelos->setCurrentIndex(0);
 }
+
 
 

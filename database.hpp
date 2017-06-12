@@ -69,7 +69,16 @@ public:
     bool ejecutarConsulta(QString q);
     bool ejecutarConsulta(QString q, QSqlQuery &query);
 
+
+    /**
+     * @brief getNumberOfRows cuenta la cantidad de filas de la tabla que se indica
+     * @param table es la tabla donde verifica
+     * @return cantidad de filas, -1 en caso de error
+     */
     int getNumberOfRows(QString table);
+
+
+    int getLastRow(QString table, QString column);
 
     // creadores de tablas
     bool createTableVinculos();

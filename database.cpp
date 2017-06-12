@@ -4,6 +4,12 @@
 #include <QSqlRecord>
 #include "common.h"
 
+/* TODO: hacer que al comenzar se inserten los marcadores
+ * con otro metodo que no sea el ejecutar consulta, porque
+ * abre y cierra la conexion con la base de datos y consume
+ * muchos recursos.
+*/
+
 Database *Database::instance = NULL;
 
 Database::Database( QObject *parent ) :
@@ -201,6 +207,15 @@ int Database::getNumberOfRows(QString table)
     QSqlQuery q;
     if (!ejecutarConsulta("select count(*) from " + table, q)) return -1;
     q.next();
+    return q.value(0).toInt();
+}
+
+int Database::getLastRow(QString table, QString column)
+{
+    QSqlQuery q;
+    if (!ejecutarConsulta("select * from "+ table +" order by " + column + " desc limit 1", q)) return -1;
+    q.next();
+    qDebug() << "getLastRow:" << q.value(0).toInt();
     return q.value(0).toInt();
 }
 

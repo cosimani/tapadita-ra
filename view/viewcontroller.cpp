@@ -13,7 +13,7 @@ ViewController::ViewController(QWidget *parent) :
     this->initDefaultValues();
     this->initDataBase();
     Database::getInstance()->getNumberOfRows("vinculos");
-    connect(ui->inicio, SIGNAL(sig_start()), this, SLOT(slot_showPrincipal()));
+    connect(ui->inicio, SIGNAL(sig_start(QMap<QString, QString>)), this, SLOT(slot_showPrincipal(QMap<QString, QString>)));
 }
 
 ViewController::~ViewController()
@@ -58,11 +58,13 @@ void ViewController::initDataBase()
 
 
 
-void ViewController::slot_showPrincipal()
+void ViewController::slot_showPrincipal(QMap<QString, QString> fichas_jugadores)
 {
     qDebug() << "slot_showPrincipal: se oculta register y muestra principal";
     ui->inicio->setVisible(false);
     ui->principal->setVisible(true);
+    ui->principal->setFichas_jugadores(fichas_jugadores);
+
     // inicializo el timer de scene aca, porque sino esta visible y se intenta actualizar la esena rompe
     ui->principal->startTimer();
 }

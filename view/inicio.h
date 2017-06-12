@@ -13,6 +13,9 @@ class Inicio : public QWidget
 {
     Q_OBJECT
 
+    QMap<QString,QString> currentPlayers;
+    QMap<QString,QString> currentFJ;
+
 public:
     explicit Inicio(QWidget *parent = 0);
     ~Inicio();
@@ -34,6 +37,11 @@ public:
      * @return true si TODOS los jugadores fueron insertados, si algun fallo false.
      */
     bool registrarJugadores();
+    QMap<QString, QString> getCurrentPlayers() const;
+    void setCurrentPlayers(const QMap<QString, QString> &value);
+
+    QMap<QString, QString> getCurrentFJ() const;
+    void setCurrentFJ(const QMap<QString, QString> &value);
 
 private:
     Ui::Inicio *ui;
@@ -42,7 +50,7 @@ private slots:
     void slot_start(bool push);
 
 signals:
-    void sig_start();
+    void sig_start(QMap<QString, QString> fichas_jugadores);
 };
 
 #endif // INICIO_H
