@@ -158,6 +158,7 @@ void Scene::loadTextures()
 }
 
 void Scene::addTexture(QString imagen){
+
     textures->append(new Texture(imagen));
     Mat textureMat = imread( imagen.toStdString() );
     flip( textureMat, textureMat, 0 );
