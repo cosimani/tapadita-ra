@@ -130,7 +130,9 @@ SOURCES += main.cpp\
     view/micampotexto.cpp \
     view/inicio.cpp \
     view/principal.cpp \
-    view/miqlineedit.cpp
+    view/miqlineedit.cpp \
+    controller/jugador.cpp \
+    factory.cpp
 
 HEADERS += model.h \
            scene.h \
@@ -158,7 +160,9 @@ HEADERS += model.h \
     view/micampotexto.h \
     view/inicio.h \
     view/principal.h \
-    view/miqlineedit.h
+    view/miqlineedit.h \
+    controller/jugador.h \
+    factory.h
 
 FORMS += \
     view/viewcontroller.ui \
@@ -171,4 +175,6 @@ FORMS += \
 DISTFILES += \
     README.md \
     Files/db.sqlite \
-    Files/CameraParameters.yml
+    Files/CameraParameters.yml \
+    images/empty_profile.jpg \
+    images/empty_profile2.jpg

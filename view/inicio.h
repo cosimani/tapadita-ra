@@ -3,7 +3,10 @@
 
 #include <QWidget>
 #include <QMap>
+#include <QVector>
 #include "database.hpp"
+#include "factory.h"
+#include "controller/jugador.h"
 
 namespace Ui {
 class Inicio;
@@ -13,6 +16,7 @@ class Inicio : public QWidget
 {
     Q_OBJECT
 
+    QVector<Jugador *> jugadoresActuales;
     QMap<QString,QString> currentPlayers;
     QMap<QString,QString> currentFJ;
 
@@ -27,9 +31,16 @@ public:
 
     /**
      * @brief insertPlayersInDB inserto cada jugador en la bd
-     * @return true si fue exitoso
+     * @return true si inserto TODOS
      */
-    bool insertPlayersInDB(QMap<QString,QString> players);
+    bool insertPlayersInDB();
+
+    /**
+     * @brief insertFichasJugadoresInDB inserto la relacion de
+     * cada ficha(tarjeta) que de cada jugador en la base de datos
+     * @return true si inserto TODOS
+     */
+    bool insertFichasJugadoresInDB();
 
     /**
      * @brief registrarJugadores guarda los el valor del campo nombre y la ruta de la foto de perfil
@@ -42,6 +53,9 @@ public:
 
     QMap<QString, QString> getCurrentFJ() const;
     void setCurrentFJ(const QMap<QString, QString> &value);
+
+    QVector<Jugador *> getJugadoresActuales() const;
+    void setJugadoresActuales(const QVector<Jugador *> &value);
 
 private:
     Ui::Inicio *ui;

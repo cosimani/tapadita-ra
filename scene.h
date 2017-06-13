@@ -80,9 +80,6 @@ private:
     void decreaseVideosVolume();
     void decreaseVideosVolumeVinculados();
 
-    // jr
-    void addTexture(QString imagen);
-
 public:
     Scene( QWidget *parent = 0 );
     ~Scene();
@@ -90,6 +87,9 @@ public:
 
     QTimer *getSceneTimer() const;
     void setSceneTimer(QTimer *value);
+
+    // jr
+    void addTexture(QString imagen);
 
 protected:
     void initializeGL();

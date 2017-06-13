@@ -4,11 +4,12 @@
 #include <QCameraInfo>
 #include <QMessageBox>
 #include "view/viewcontroller.h"
+#include "controller/jugador.h"
 
-QMap<QString, QString> Principal::getFichas_jugadores() const
-{
-    return fichas_jugadores;
-}
+/* TODO:
+ * tomar los valores del mapa cuando ya esta seteado
+ * y buscar en la bd los datos de cada marcador y jugador.
+ */
 
 Principal::Principal(QWidget *parent) :
     QWidget(parent),
@@ -54,6 +55,13 @@ void Principal::startTimer()
     ui->scene->getSceneTimer()->start(10);
 }
 
+/**
+ * @brief Principal::setFichas_jugadores setea un Map con
+ * key:nro_jugador y su value y otra key:marker_id y su value
+ *
+ * @param fichas_jugadores recibe el Mapa cargado desde ViewController
+ * recien cuando esta visible la clase principal.
+ */
 void Principal::setFichas_jugadores(QMap<QString, QString> fichas_jugadores)
 {
     // pruebo poner para que detecte los marcadores
@@ -61,11 +69,29 @@ void Principal::setFichas_jugadores(QMap<QString, QString> fichas_jugadores)
     // dibuja una imagen llame al metodo drawsheet (algo asi)
     // con una imagen por defecto que le paso
     ui->cbMostrarId->setChecked(true);
-
-
     this->fichas_jugadores = fichas_jugadores;
+
+    // por defecto dejo esta cargada
+    ui->scene->addTexture("/home/jrjs/proyectos-qt/closed_hand.png");
+
+    QVector<Jugador*> *vp = Jugador::getJugadoresActuales();
+    for( int i = 0; i < vp->size(); i++){
+        ui->scene->addTexture(vp->at(i)->getFoto_perfil());
+        qDebug() << "foto:" << vp->at(i)->getFoto_perfil();
+        qDebug() << "nombre:" << vp->at(i)->getNombre();
+    }
+
+    //prueba, agrego la textura de una imagen al comienzo
+//    addTexture("");
+//    addTexture("../boca.png");
+
 }
 
+
+QMap<QString, QString> Principal::getFichas_jugadores() const
+{
+    return fichas_jugadores;
+}
 
 /**
  * @brief Principal::cargarCamaras metodo que busca las camaras disponibles
