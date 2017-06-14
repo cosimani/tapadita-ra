@@ -32,26 +32,29 @@ void ViewController::initDefaultValues()
 // nota: demora bastante en insertar en la base de datos al comienzo,
 // habria que hacerlo luego de que se creen las vistas, para que no
 // se interrumpa O sino hacerlo en otro hilo con QThread
+
+// creo que mas facil seria insertar los marcadores que uso y listo.
 void ViewController::initDataBase()
 {
     if (!Database::getInstance()->checkBase() == -1){
         qDebug() << "ERROR: No se pudo conectar con la base de datos";
         this->close();
     }
-    qDebug() << "por cargar markers";
+
     // si ya se cargaron los marcadores, no los vuelvo a cargar
     int filas = Database::getInstance()->getNumberOfRows("vinculos");
-    qDebug() << "cantidad de filas:" << filas;
     if (! (filas == CANTIDAD_MARCADORES) ) {
     qDebug() << "cargar markers";
     // aca tengo que cargar los datos de los marcadores
-        for(int i = 0; i < CANTIDAD_MARCADORES; i++){
+        for(int i = 0; i < 0; i++){
             QStringList values;
             values.append(QString::number(i));
             values.append("null");
             values.append("null");
-            Database::getInstance()->insert_into("vinculos", values);
-            qDebug() << "cargar markers adentro" << i;
+            values.append("null");
+            if(!Database::getInstance()->insert_into("vinculos", values)){
+                qDebug() << "void ViewController::initDataBase(): No se pudo insertar en tabla vinculos";
+            }
         }
     }
 }
