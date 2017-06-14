@@ -30,7 +30,7 @@
 
 #include <QSlider>
 
-#include "principal.h"
+#include "view/principal.h"
 
 using namespace cv;
 using namespace std;
@@ -84,6 +84,12 @@ public:
     Scene( QWidget *parent = 0 );
     ~Scene();
     void actualizarTexturas();
+
+    QTimer *getSceneTimer() const;
+    void setSceneTimer(QTimer *value);
+
+    // jr
+    void addTexture(QString imagen);
 
 protected:
     void initializeGL();

@@ -10,6 +10,8 @@ TEMPLATE = app
 
 DEFINES += NO_DEBUG_ARUCO
 
+DEFINES += CAMARAOPENCV #cuando este definida se enumeraran las camaras con Opencv
+
 # La siguiente macro es para poder crear el Portable instalador. Cambia la carpeta del proyecto .. por .
 #DEFINES += PORTABLE
 
@@ -119,9 +121,18 @@ SOURCES += main.cpp\
            aruco/marker.cpp \
            aruco/markerdetector.cpp \
            aruco/subpixelcorner.cpp \
-    principal.cpp \
-    miqlineedit.cpp \
-    database.cpp
+    database.cpp \
+    view/viewcontroller.cpp \
+    view/registerplayer.cpp \
+    view/mibutton.cpp \
+    view/image.cpp \
+    view/profilepicture.cpp \
+    view/micampotexto.cpp \
+    view/inicio.cpp \
+    view/principal.cpp \
+    view/miqlineedit.cpp \
+    controller/jugador.cpp \
+    factory.cpp
 
 HEADERS += model.h \
            scene.h \
@@ -138,14 +149,32 @@ HEADERS += model.h \
            aruco/marker.h \
            aruco/markerdetector.h \
            aruco/subpixelcorner.h \
-    principal.h \
     logo.h \
-    miqlineedit.h \
     database.hpp \
-    common.h
+    common.h \
+    view/viewcontroller.h \
+    view/registerplayer.h \
+    view/mibutton.h \
+    view/image.h \
+    view/profilepicture.h \
+    view/micampotexto.h \
+    view/inicio.h \
+    view/principal.h \
+    view/miqlineedit.h \
+    controller/jugador.h \
+    factory.h
 
 FORMS += \
-    principal.ui
+    view/viewcontroller.ui \
+    view/registerplayer.ui \
+    view/profilepicture.ui \
+    view/micampotexto.ui \
+    view/inicio.ui \
+    view/principal.ui
 
 DISTFILES += \
-    README.md
+    README.md \
+    Files/db.sqlite \
+    Files/CameraParameters.yml \
+    images/empty_profile.jpg \
+    images/empty_profile2.jpg

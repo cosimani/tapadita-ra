@@ -7,11 +7,32 @@
 #include <QFileInfo>
 #include <QDir>
 #include "common.h"
+#include "controller/jugador.h"
+#include <QVector>
+
+/* Junior del futuro:
+ *
+ * TODO:
+ * 1- averiguar como hace para que la imagen
+ * "siga" el marcador, ya se como setear la imagen,
+ * pero quiero saber como hace eso antes de continuar
+ * con el proyecto.
+ *
+ * Status: terminado
+ * Lo hace en paintgl donde a cada marker le pide su matrix y luego la setea
+ *
+ * TODO:
+ * 2- para saber si un marker esta relacionado, pregunto
+ * en la bd si existe la relacion (num_jug, marker_id)
+ * pero no esta bueno que sea asi, deberia ser mas eficiente.
+ *
+ *
+ */
 
 Scene::Scene( QWidget *parent ) : QGLWidget( parent ),
                                   nCamera( 0 ),
 
-//                                  videoCapture ( new cv::VideoCapture( nCamera ) ),
+                                  videoCapture ( new cv::VideoCapture( nCamera ) ),
 
                                   sceneTimer ( new QTimer ),
                                   milisecondsTimer( 10 ),
@@ -55,10 +76,10 @@ Scene::Scene( QWidget *parent ) : QGLWidget( parent ),
 
     }
 
-    sceneTimer->start( milisecondsTimer );
+//    sceneTimer->start( milisecondsTimer );
     connect( sceneTimer, SIGNAL( timeout() ), SLOT( slot_updateScene() ) );
 
-    Database::getInstance()->checkBase();
+//    Database::getInstance()->checkBase();
 
 }
 
@@ -73,25 +94,24 @@ void Scene::actualizarTexturas()
     videosVinculados->clear();
 
     imageFiles = Database::getInstance()->readVinculos();
-
+    qDebug() << "imageFiles.size()" << imageFiles.size(); // 64, las que cargue en la bd.
     for ( int i = 0; i < imageFiles.size(); i++ )
     {
         QFileInfo fileInfo = imageFiles.at( i ).at(1);
         QString fileName = fileInfo.fileName();
-
         if ( fileInfo.suffix() != "mp4" )  {  // Entra si es png
 
             texturesVinculadas->append( new Texture( fileName ) );
             QString textureUri = imageFiles.at( i ).at(1);
 
-            qDebug() << "texture Uri" << textureUri;
-
-            Mat textureMat = imread( textureUri.toStdString(), CV_LOAD_IMAGE_COLOR );
-
-//            cv::cvtColor(textureMat, textureMat, )
-    //        flip( textureMat, textureMat, 0 );
-            texturesVinculadas->last()->mat = textureMat;
-            texturesVinculadas->last()->generateFromMat();
+            if(textureUri.size() > 0){
+                qDebug() << "texture Uri" << textureUri;
+                Mat textureMat = imread( textureUri.toStdString(), CV_LOAD_IMAGE_COLOR );
+    //            cv::cvtColor(textureMat, textureMat, )
+        //        flip( textureMat, textureMat, 0 );
+                texturesVinculadas->last()->mat = textureMat;
+                texturesVinculadas->last()->generateFromMat();
+            }
         }
         else  {  // Entra si es mp4
 
@@ -103,6 +123,15 @@ void Scene::actualizarTexturas()
 
 }
 
+QTimer *Scene::getSceneTimer() const
+{
+    return sceneTimer;
+}
+
+void Scene::setSceneTimer(QTimer *value)
+{
+    sceneTimer = value;
+}
 
 void Scene::loadTextures()
 {
@@ -126,6 +155,15 @@ void Scene::loadTextures()
         textures->last()->mat = textureMat;
         textures->last()->generateFromMat();
     }
+}
+
+void Scene::addTexture(QString imagen){
+
+    textures->append(new Texture(imagen));
+    Mat textureMat = imread( imagen.toStdString() );
+    flip( textureMat, textureMat, 0 );
+    textures->last()->mat = textureMat;
+    textures->last()->generateFromMat();
 }
 
 void Scene::loadModels()
@@ -319,109 +357,46 @@ void Scene::paintGL()
     if ( principal->ui->cbSinContenido->isChecked() )
         return;
 
+
+
     // Inicio: Gráfico en marcadores
 
-    for( int i = 0 ; i < detectedMarkers.size() ; i++ )
-    {
-        detectedMarkers.operator []( i ).glGetModelViewMatrix( modelview_matrix );
-        glLoadMatrixd( modelview_matrix );
 
-        // Rotacion activada a traves del checkbox
-        if( principal->ui->rotateCheckBox->isChecked() )  {
-            zRotationVelocity += principal->ui->rotationVelocitySlider->value();
-            glRotatef( zRotationVelocity, 0, 0, 1 );
-        }
+    /* algoritmo relacion marker_id con jugador
+     *
+     * los jugadores siempre estan en la misma posicion, y lo que va variando son los marcadores
+     *
+     * 1- podria hacer un for de jugadores y dentro un for de marcadores detectados,
+     *    dentro pregunto si la consulta from fichas_jugador de esa combinacion devuelve algo
+     *    en caso verdadero => dibujo la imagen
+     *    falso => no dibujo
+    */
 
-//        emit message( QString::number(detectedMarkers.at( i ).id) );
+    float coefTamano = (float)principal->ui->sbTamano->value() / (float)100;
+    QVector<Jugador*> * vp = Jugador::getJugadoresActuales();
+    for(int i = 0; i < vp->size(); i++){
 
-        float coefTamano = (float)principal->ui->sbTamano->value() / (float)100;
+        Jugador * jug = vp->at(i);
+        QString fp = jug->getFoto_perfil();
 
-//        QVector<QStringList> vTexVinculadas = Database::getInstance()->readVinculos();
-        QVector<QStringList> vTexVinculadas = imageFiles;
+        for( int j = 0 ; j < detectedMarkers.size() ; j++ ){
 
-        for ( int j=0 ; j<vTexVinculadas.size() ; j++ )  {
+            // aca se toma la matrix de cada marcador
+            detectedMarkers.operator []( j ).glGetModelViewMatrix( modelview_matrix );
+            // y se setea la matrix de ese marcador, para que la pueda dibujar y seguir
+            glLoadMatrixd( modelview_matrix );
 
-            if ( detectedMarkers.at( i ).id == vTexVinculadas.at( j ).at(0).toInt() )  {
-
-                if ( vTexVinculadas.at( j ).at(1) == "Casa" )  {
-                    glRotatef(90, 1,0,0);
-                    drawModel( "House.3ds", 25 * coefTamano);
-                }
-                else if ( vTexVinculadas.at( j ).at(1) == "Hombre" )  {
-                    glRotatef(180, 1,0,0);
-                    drawModel( "Man.3ds", 4 * coefTamano );
-                }
-                else if ( vTexVinculadas.at( j ).at(1) == "Oil" )  {
-                    glRotatef(180, 1,0,0);
-                    drawModel( "Oil.3ds", 80 * coefTamano );
-                }
-                else if ( vTexVinculadas.at( j ).at(1) == "Iphone" )  {
-                    glRotatef(180, 1,0,0);
-                    drawModel( "IPhone.3ds", 80 * coefTamano );
-                }
-                else  {
-                    QFileInfo fileInfo = vTexVinculadas.at( j ).at(1);
-                    QString fileName = fileInfo.fileName();
-
-
-                    if ( fileInfo.suffix() == "mp4" )  {
-                        // Es un aproximado para el volumen segun el area del marcador
-                        int volumen = ((int)detectedMarkers.at( i ).getArea()) / 300;
-                        drawVideoVinculado( fileName, detectedMarkers.at( i ).ssize, 160 * coefTamano, volumen );
-                    }
-                    else  {
-                        if ( vTexVinculadas.at( j ).at(2) == "n" )
-                            drawSheetVinculadas( fileName, detectedMarkers.at( i ).ssize, 100 * coefTamano );
-                        else
-                            drawBoxVinculado( fileName, detectedMarkers.at( i ).ssize, 100 * coefTamano );
-                    }
-
-                }
-
-
+            int mi = detectedMarkers.at(j).id;            
+            // pregunto si el jugador tiene en su vector de ids, el
+            // id del marcador encontrado y dibujo su foto si esta esa relacion.
+            if( jug->getVecids()->indexOf(mi) != -1) {
+                drawSheet(fp, detectedMarkers.at( j ).ssize, 100 * coefTamano);
             }
-
         }
-
-
-
-//        switch( detectedMarkers.at( i ).id )  {
-
-//        case 459: {
-//            drawBox( "Danger.jpg", detectedMarkers.at( i ).ssize, 100 );
-//            break; }
-
-//        case 56: {
-//            drawSheet( "messi.png", detectedMarkers.at( i ).ssize, 100 );
-//            break; }
-
-//        case 58: {
-//            // Es un aproximado para el volumen segun el area del marcador
-//            int volumen = ((int)detectedMarkers.at( i ).getArea()) / 300;
-//            drawVideo( "trailer-relato.mp4", detectedMarkers.at( i ).ssize, 160, volumen );
-//            break; }
-
-//        case 55: {
-//            // Es un aproximado para el volumen segun el area del marcador
-//            int volumen = ((int)detectedMarkers.at( i ).getArea()) / 300;
-//            drawVideo( "trailer-RF7.mp4", detectedMarkers.at( i ).ssize, 160, volumen );
-//            break; }
-
-//        case 57: {
-//            glRotatef(90, 1,0,0);
-//            drawModel( "House.3ds", 25 );
-//            break; }
-
-//        case 59: {
-//            glRotatef(180, 1,0,0);
-//            drawModel( "Man.3ds", 4 );
-//            break; }
-
-//        default: { break; }
-//        }
-
-
     }
+
+    // Fin: Gráfico en marcadores
+
 
     // La siguiente linea se ejecuta siempre. Habria que ingeniarsela de otra forma para bajar el volumen
     decreaseVideosVolume();
@@ -455,31 +430,15 @@ void Scene::keyPressEvent( QKeyEvent *event )
     }
 }
 
-
-
-void Scene::process( Mat &frame )
-{
-    Mat grayscaleMat; cvtColor( frame, grayscaleMat, CV_BGR2GRAY );
-    Mat binaryMat; threshold( grayscaleMat, binaryMat, 128, 255, cv::THRESH_BINARY );
-
-    std::vector< Marker > detectedMarkersVector;
-    cameraParameters->resize( binaryMat.size() );
-    markerDetector->detect( binaryMat, detectedMarkersVector, *cameraParameters, 0.08f );
-    detectedMarkers = QVector< Marker >::fromStdVector( detectedMarkersVector );
-
-    // descripcion del marker
-    if ( principal->ui->cbMostrarId->isChecked() )
-        for( int i = 0; i < detectedMarkers.size(); i++ )
-            detectedMarkers.at( i ).draw( frame, Scalar( 255, 0, 255 ), 1 );
-}
-
 void Scene::drawCamera( unsigned int percentage )
 {
+    qDebug() << "%%%%%%%%%%%%%%%%%%%% drawCamera %%%%%%%%%%%%%%%%%%%%%%%";
     drawSheet( "CameraTexture", percentage );
 }
 
 void Scene::drawCameraBox(unsigned int percentage )
 {
+    qDebug() << "$$$$$$$$$$$$$$$$$$$$ drawCameraBox $$$$$$$$$$$$$$$$$$$$$$$";
     drawBox( "CameraTexture", percentage );
 }
 
@@ -488,6 +447,7 @@ void Scene::drawCameraBox(unsigned int percentage )
  */
 void Scene::drawSheetVinculadas(QString textureName, float sizeMarker, unsigned int percentage )
 {
+    qDebug() << "################### drawSheetVinculadas #######################";
     sizeMarker = sizeMarker * (float)percentage / (float)100;
 
     for( int i = 0; i < texturesVinculadas->size(); i++ )
@@ -516,18 +476,24 @@ void Scene::drawSheetVinculadas(QString textureName, float sizeMarker, unsigned 
  */
 void Scene::drawSheet(QString textureName, float sizeMarker, unsigned int percentage )
 {
+    qDebug() << "<<<<<<<<<<<<<<<<< drawSheet <<<<<<<<<<<<<<<<<<<<<<<<<";
     sizeMarker = sizeMarker * (float)percentage / (float)100;
-
     for( int i = 0; i < textures->size(); i++ )
     {
         if( textures->at( i )->name == textureName )
         {
+//            qDebug() << "------------drawSheet entra a dibujar------------";
             glEnable( GL_TEXTURE_2D );
             glBindTexture( GL_TEXTURE_2D, textures->at( i )->id );
             glColor3f( 1, 1, 1 );
             glBegin( GL_QUADS );
 
                 glNormal3f( 0.0f, 0.0f,-1.0f);
+                qDebug() << "\nposicion marker";
+                qDebug() << "1st" <<  -sizeMarker/2 << -sizeMarker/2;
+                qDebug() << "2nd" << -sizeMarker/2 <<  sizeMarker/2;
+                qDebug() << "3rd" << sizeMarker/2 <<  sizeMarker/2;
+                qDebug() << "4th" << sizeMarker/2 <<  -sizeMarker/2;
                 glTexCoord2f( 1.0f, 0.0f ); glVertex3f(-sizeMarker/2, -sizeMarker/2, 0 );
                 glTexCoord2f( 1.0f, 1.0f ); glVertex3f(-sizeMarker/2,  sizeMarker/2, 0 );
                 glTexCoord2f( 0.0f, 1.0f ); glVertex3f( sizeMarker/2,  sizeMarker/2, 0 );
@@ -547,6 +513,7 @@ void Scene::drawSheet(QString textureName, float sizeMarker, unsigned int percen
  */
 void Scene::drawBox( QString textureName, float sizeMarker, unsigned int percentage )
 {
+    qDebug() << """""""""""""""""drawBox""""""""""""""""""""""";
     sizeMarker = sizeMarker * (float)percentage / (float)100;
 
     for( int i = 0; i < textures->size(); i++ )
@@ -610,6 +577,7 @@ void Scene::drawBox( QString textureName, float sizeMarker, unsigned int percent
  */
 void Scene::drawBoxVinculado( QString textureName, float sizeMarker, unsigned int percentage )
 {
+    qDebug() << "------------drawBoxVinculado------------"; //
     sizeMarker = sizeMarker * (float)percentage / (float)100;
 
     for( int i = 0; i < texturesVinculadas->size(); i++ )
@@ -667,6 +635,7 @@ void Scene::drawBoxVinculado( QString textureName, float sizeMarker, unsigned in
 
 void Scene::drawModel( QString modelName, int percentage )
 {
+    qDebug() << "|||||||||||||drawModel||||||||||||||||";
     float scale = percentage / ( float )1000;
     for ( int i = 0 ; i < models->size(); i++ )
     {
@@ -700,6 +669,7 @@ void Scene::drawModel( QString modelName, int percentage )
 
 void Scene::drawVideo( QString videoName, float sizeMarker, unsigned int percentage, int volume )
 {
+    qDebug() << "&&&&&&&&&&&&&&&&&&& drawVideo &&&&&&&&&&&&&&&&&&&&&&";
     sizeMarker = sizeMarker * (float)percentage / (float)100;
 
     for ( int i = 0 ; i < videos->size(); i++ )
@@ -728,6 +698,7 @@ void Scene::drawVideo( QString videoName, float sizeMarker, unsigned int percent
 
 void Scene::drawVideoVinculado( QString videoName, float sizeMarker, unsigned int percentage, int volume )
 {
+    qDebug() << "(((((((((((((((((( drawVideoVinculado (((((((((((((((((";
     sizeMarker = sizeMarker * (float)percentage / (float)100;
 
     for ( int i = 0 ; i < videosVinculados->size(); i++ )
@@ -787,12 +758,28 @@ void Scene::decreaseVideosVolumeVinculados()
 }
 
 void Scene::slot_updateScene()  {
+
     videoCapture->operator >>( textures->operator []( 0 )->mat );
-
     process( textures->operator []( 0 )->mat );
-
     textures->operator []( 0 )->generateFromMat();
     this->updateGL();
+}
+
+void Scene::process( Mat &frame )
+{
+    Mat grayscaleMat; cvtColor( frame, grayscaleMat, CV_BGR2GRAY );
+    Mat binaryMat; threshold( grayscaleMat, binaryMat, 128, 255, cv::THRESH_BINARY );
+
+    std::vector< Marker > detectedMarkersVector;
+    cameraParameters->resize( binaryMat.size() );
+    markerDetector->detect( binaryMat, detectedMarkersVector, *cameraParameters, 0.08f );
+    detectedMarkers = QVector< Marker >::fromStdVector( detectedMarkersVector );
+
+    // descripcion del marker
+    if ( principal->ui->cbMostrarId->isChecked() )
+        for( int i = 0; i < detectedMarkers.size(); i++ ) {
+            detectedMarkers.at( i ).draw( frame, Scalar( 255, 0, 255 ), 1 );
+        }
 }
 
 void Scene::slot_vincular( int marker_id, QString recurso, QString formatoCaja )
