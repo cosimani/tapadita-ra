@@ -40,7 +40,7 @@ public:
      * cada ficha(tarjeta) que de cada jugador en la base de datos
      * @return true si inserto TODOS
      */
-    bool insertFichasJugadoresInDB();
+    bool insertVinculosInDB();
 
     /**
      * @brief registrarJugadores guarda los el valor del campo nombre y la ruta de la foto de perfil

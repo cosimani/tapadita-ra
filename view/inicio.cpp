@@ -58,9 +58,10 @@ void Inicio::initDefaultValues()
 bool Inicio::registrarJugadores(){
     qDebug() << "entro a registrarJugador";
 
-    insertPlayersInDB();
+    bool ip = insertPlayersInDB();
+    bool iv = insertVinculosInDB();
 
-    insertFichasJugadoresInDB();
+    return ip && iv;
 }
 
 
@@ -105,6 +106,7 @@ bool Inicio::insertPlayersInDB()
             jug->setNombre(nom);
             // consultar el id del jugador y setearselo
             int nro_jug = Database::getInstance()->getLastRow("jugadores", "nro_jugador");
+            qDebug() << "ultimo jug:" << nro_jug;
             jug->setNro_jugador(nro_jug);
 
             Jugador::getJugadoresActuales()->append(jug);
@@ -120,9 +122,9 @@ bool Inicio::insertPlayersInDB()
  * y se insertan en la bd
  * @return true si TODOS se insertaron, sino false.
  */
-bool Inicio::insertFichasJugadoresInDB()
+bool Inicio::insertVinculosInDB()
 {
-    qDebug() << "insertFichasJugadoresInDB";
+    qDebug() << "insertVinculosJugadoresDB";
     /* TODO:
      * una vez registrados los jugadores, debo asociarlos con un(os)
      * marcadores. para ello, tengo que insertar en la tabla
@@ -148,35 +150,35 @@ bool Inicio::insertFichasJugadoresInDB()
 
     // cargo los valores por defecto del jugador 1 y 2
     QVector<int> jf1 = { 106, 111, 112 };
-    for(int i = 0; i < jf1.size(); i++)
-        vp->at(0)->getVecids()->append(jf1.at(i));
+    QVector<int> jf2 = { 17, 20, 21 };
+    QVector< QVector<int> > vi;
+    vi.append(jf1);
+    vi.append(jf2);
 
-    QVector<int> jf2 = { 17, 20, 21};
-    for(int i = 0; i < jf2.size(); i++)
-        vp->at(1)->getVecids()->append(jf2.at(i));
+    // agrego los id por defecto de cada jugador
+    for(int i = 0; i < vp->size(); i++)
+        for(int j = 0; j < 3; j++){
+            vp->at(i)->getVecids()->append( vi.at(i).at(j) );
+        }
 
-    // tomo el numero de cada jugador, lo relaciono con un marker
-    // (3 para c/u en principio) e inserto la relacion en la bd
+
+    // inserto en la tabla vinculos, los ids de los marcadores y su relacion con el jugador
     for(int i = 0; i < vp->size(); i++){
-
-        mapFichas_Jugador.clear();
         Jugador * jug = vp->at(i);
+        QStringList vinculos;
 
-        QString nro_jugador = QString::number(jug->getNro_jugador());
-        nro_jugador.push_back("'");
-        nro_jugador.push_front("'");
+        for(int j = 0; j < jug->getVecids()->size(); j++){
 
-        for(int k = 0; k < jug->getVecids()->size(); k++){
+            vinculos.clear();
+            vinculos.append( QString::number( jug->getVecids()->at(j)) ); // marker_id
+            vinculos.append( QString::number( jug->getNro_jugador()) );   // nro_jugador
+            vinculos.append("null"); // recurso
+            vinculos.append("null"); // formato caja
 
-            QString marker_id = QString::number(jug->getVecids()->at(k) );
-            marker_id.push_back("'");
-            marker_id.push_front("'");
-
-            mapFichas_Jugador["nro_jugador"] = nro_jugador;
-            mapFichas_Jugador["marker_id"] = marker_id;
-
-            if ( !Database::getInstance()->insert_into("fichas_jugador", mapFichas_Jugador) )
+            if(!Database::getInstance()->insert_into("vinculos", vinculos)){
+                qDebug() << "bool Inicio::insertVinculosInDB(): No se pudo insertar en tabla vinculos";
                 return false;
+            }
         }
     }
 
@@ -189,6 +191,7 @@ void Inicio::slot_start(bool push)
     if (!registrarJugadores()) {
         qDebug() << "ERROR: Inicio::slot_start no se pudieron registrar todos los jugadores";
         this->close();
+        return;
     }
 
     qDebug() << "slot_start, se pulso button";

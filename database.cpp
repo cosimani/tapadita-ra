@@ -2,6 +2,8 @@
 #include <QDebug>
 #include <QSqlError>
 #include <QSqlRecord>
+#include <QMapIterator>
+#include <QMap>
 #include "common.h"
 
 /* TODO: hacer que al comenzar se inserten los marcadores
@@ -49,11 +51,13 @@ void Database::disconnectDatabase()
 
 int Database::checkBase()
 {
+    // tengo que habilitar las foreign keys, sino no funcionan
+    this->ejecutarConsulta("PRAGMA foreign_keys = ON;");
+    this->ejecutarConsulta("delete from vinculos;");
     if( this->connectDatabase() )
     {
         if( database.tables().contains( "vinculos" ) &&
-                database.tables().contains( "jugadores" ) &&
-                database.tables().contains( "fichas_jugador" ))
+                database.tables().contains( "jugadores" ) )
         {
             this->disconnectDatabase();
             return 1;
@@ -62,11 +66,11 @@ int Database::checkBase()
         {
             bool qv = createTableVinculos();
             bool qj = createTableJugadores();
-            bool qf = createTableFichas();
+//            bool qf = createTableFichas();
 
             this->disconnectDatabase();
 
-            return qv && qj && qf ? 0 : -1;
+            return qv && qj ? 0 : -1;
         }
     }
     else
@@ -80,12 +84,7 @@ bool Database::insert_into(QString table, QStringList values)
 {
     if(!this->connectDatabase()) return false;
     int cantValues = getNumberOfColumns(table);
-
-    /*
-    if(cantValues != values.size()) {
-        qDebug() << "ERROR: no hay valores para todas las columnas";
-        return false;
-    }*/
+    if(values.size() != cantValues) return false;
 
     QString query("insert into " + table + " values (");
     for(int i = 0; i < cantValues; i++) {
@@ -97,9 +96,6 @@ bool Database::insert_into(QString table, QStringList values)
 
     return ejecutarConsulta(query);
 }
-
-#include <QMapIterator>
-#include <QMap>
 
 bool Database::insert_into(QString table, QMap<QString, QString> valuesMap)
 {
@@ -126,7 +122,6 @@ bool Database::insert_into(QString table, QMap<QString, QString> valuesMap)
     return ejecutarConsulta(insert);
 }
 
-
 int Database::getNumberOfColumns(QString table)
 {
     int columns = 0;
@@ -146,6 +141,7 @@ bool Database::createTableVinculos()
     QString queryString( "create table vinculos                            "
                          "(                                                "
                          "    marker_id      integer         primary key,  "
+                         "    nro_jugador    integer         null,         "
                          "    recurso        varchar(100)    null,         "
                          "    formato_caja   varchar(5)      null          "
                          ")" );

@@ -376,8 +376,8 @@ void Scene::paintGL()
     QVector<Jugador*> * vp = Jugador::getJugadoresActuales();
     for(int i = 0; i < vp->size(); i++){
 
-        int np = vp->at(i)->getNro_jugador();
-        QString fp = vp->at(i)->getFoto_perfil();
+        Jugador * jug = vp->at(i);
+        QString fp = jug->getFoto_perfil();
 
         for( int j = 0 ; j < detectedMarkers.size() ; j++ ){
 
@@ -386,19 +386,11 @@ void Scene::paintGL()
             // y se setea la matrix de ese marcador, para que la pueda dibujar y seguir
             glLoadMatrixd( modelview_matrix );
 
-            int mi = detectedMarkers.at(j).id;
-
-            // pregunto si la relacion R(np,mi) existe
-            QString consulta("select * "
-                             "from fichas_jugador "
-                             "where nro_jugador = "+ QString::number(np) +
-                             " and marker_id = " + QString::number(mi));
-            QSqlQuery query;
-            Database::getInstance()->ejecutarConsulta(consulta, query);
-
-            while( query.next() ) {
-                if( query.isValid() )
-                    drawSheet(fp, detectedMarkers.at( j ).ssize, 100 * coefTamano);
+            int mi = detectedMarkers.at(j).id;            
+            // pregunto si el jugador tiene en su vector de ids, el
+            // id del marcador encontrado y dibujo su foto si esta esa relacion.
+            if( jug->getVecids()->indexOf(mi) != -1) {
+                drawSheet(fp, detectedMarkers.at( j ).ssize, 100 * coefTamano);
             }
         }
     }
