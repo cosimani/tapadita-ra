@@ -5,26 +5,12 @@
 
 
 /* Junior del futuro:
+ * Branch: tapadita-game
  *
  * TODO:
- * 1- averiguar como hace para que la imagen
- * "siga" el marcador, ya se como setear la imagen,
- * pero quiero saber como hace eso antes de continuar
- * con el proyecto.
+ * 1. dibujar linea horizontal en la imagen de la camara.
  *
- * Status: terminado.
- * Lo hace en paintgl donde a cada marker le pide su matrix y luego la setea
- *
- * TODO:
- * 2- para saber si un marker esta relacionado, pregunto
- * en la bd si existe la relacion (num_jug, marker_id)
- * pero no esta bueno que sea asi, deberia ser mas eficiente.
- *
- * Status: terminado
- *
- * 3- Determinar en que momento puedo dibujar en pantalla
- *    en el paintgl no puedo => y tampoco deberia si lo hago con opencv.
- * pero si dibujo en process, las lineas se ven abajo del marker
+ * 2. medir distancia entre la linea horizontal y un marker
  *
  */
 
@@ -767,23 +753,45 @@ void Scene::process( Mat &frame )
         }
     }
 
-    // obtengo el target de mkr especial
+
+    /* dibujo lienas entre markers del mismo equipo
+    Scalar c1(255,255,0), c2(255,0,255);
+    vector<Scalar> vsc = {c1, c2};
+    int thickness = 8;
+    drawLinesBeetweenMarkers(frame, vsc, thickness);
+    */
+
+    /* dibujo distancia mas corta a marker especial
+     *
+    //obtengo el target de mkr especial
     Point target;
     for( int i = 0; i < detectedMarkers.size(); i++ ) {
         if(detectedMarkers.at( i ).id == 108){
             target = detectedMarkers.at(i).getCenter();
         }
     }
-
-    // dibujo de lineas por equipos
-    Scalar c1(255,255,0), c2(255,0,255);
-    vector<Scalar> vsc = {c1, c2};
-    int thickness = 8;
-//    drawLinesBeetweenMarkers(frame, vsc, thickness);
+    // dibujo linea mas corta al target
+    drawShortestDistanceInAxis(frame, detectedMarkers, target, DISTANCE::MODULE);
+    */
 
 
-    // dibujo linea mas corta
-    drawShortestLineToReference(frame, target);
+    // reference line
+    int ref_y = 100;
+    Point AxisYtarget(0, ref_y);
+    cv::line(frame, Point(0,ref_y), Point(640, ref_y), Scalar(255,255,255), 5);
+
+    // remuevo los markers a utilizar
+    QVector<Marker> mvec;
+    for( int i = 0; i < detectedMarkers.size(); i++ ) {
+        Marker m = detectedMarkers.at( i );
+        int mkr_y = m.getCenter().y;
+        if( !(mkr_y < ref_y) ){
+            mvec.append(detectedMarkers.at(i));
+        }
+    }
+
+    // dibujo linea mas corta al la linea de referencia
+    drawShortestDistance(frame, mvec, AxisYtarget, DISTANCE::AXIS_Y);
 }
 
 
@@ -822,16 +830,19 @@ void Scene::drawLinesBeetweenMarkers(Mat &frame, vector<Scalar> vsc, int thickne
 }
 
 /**
- * @brief Scene::drawShortestLineToReference dibuja la linea mas corta al target
- * de cada equipo
+ * @brief Scene::drawShortestDistance dibuja la linea mas corta al punto target
+ * de cada equipo, respetando el type de medicion: MODULO, AXIS_Y o AXIS_X
  * @param frame el mat donde dibuja
+ * @param mkrs los markers que se quieren analizar, podrian no ser todos por
+ * eso pongo el parametro.
  * @param target el punto de referencia donde va a calcular las lineas
- * @param thickness el grosor de las lineas
+ * @param type tipo de medicion, respecto a eje x, y o ambos siendo
+ * AXIS_X, AXIS_Y o MODULE los valores respectivamente.
+ * @param thickness el grosor de las lineas. 3 por default
  */
-void Scene::drawShortestLineToReference(Mat &frame, Point target, int thickness)
+void Scene::drawShortestDistance(Mat &frame, QVector< Marker > mkrs,  Point target, DISTANCE type, int thickness)
 {
     vector<Point> cp;
-    QVector<float> mrkcercanos;
     QVector<QString> NearestMkrs;
     QVector<Jugador*> * vp = Jugador::getJugadoresActuales();
     for(int i = 0; i < vp->size(); i++){
@@ -841,25 +852,41 @@ void Scene::drawShortestLineToReference(Mat &frame, Point target, int thickness)
         Point npt;
         float minDist = -1;
 
-        for( int k = 0; k < detectedMarkers.size(); k++ ) {
-            Marker m = detectedMarkers.at( k );
+        for( int k = 0; k < mkrs.size(); k++ ) {
+            Marker m = mkrs.at( k );
             Point mkr_center = m.getCenter();
 
-            if(j->getVecids()->indexOf(m.id) != -1)
+            // obtengo un vector con los puntos en X de los markers
+            if(j->getVecids()->indexOf(m.id) != -1){
                 cp.push_back(mkr_center);
+            }
         }
 
-        calcShortestDistance(cp, target, npt, minDist);
+        // calculo la minima distancia respecto eje Y
+        calcShortestDistance(cp, target, npt, minDist, DISTANCE::AXIS_Y);
 
         if(minDist != -1 || cp.size() != 0){
             QColor c = j->getWin_color();
             Scalar co(c.red(), c.green(), c.blue());
-            cv::line(frame, target, npt, co, thickness);
+
+            switch (type) {
+            case AXIS_Y:
+                cv::line(frame, Point(npt.x, target.y), npt, co, thickness);
+                break;
+
+            case AXIS_X:
+                cv::line(frame, Point(target.x, npt.y), npt, co, thickness);
+                break;
+
+            default:
+                cv::line(frame, target, npt, co, thickness);
+                break;
+            }
+
             int md = minDist;
             NearestMkrs.append(j->getNombre() + " esta a " + QString::number(md));
         }
     }
-
 
     for(int i = 0; i < NearestMkrs.size(); i++) {
         cv::putText(frame, NearestMkrs.at(i).toStdString(), Point(0, 30 + i * 30) , FONT_HERSHEY_PLAIN, 2, Scalar(0,255,0));
@@ -869,30 +896,51 @@ void Scene::drawShortestLineToReference(Mat &frame, Point target, int thickness)
 /**
  * @brief Scene::calcShortestDistance calcula la distancia mas corta entre los puntos
  * del vector cp y el target. Carga el punto mas cercano en nearestp y la distancia
- * en mdist
+ * en mdist.
  * @param cp vector de puntos
  * @param target punto de referencia para calcular las distancias
  * @param nearestp objeto donde carga el punto mas cercano
  * @param mdist distancia minima entre los puntos del vector y el target
+ * @param type tipo de medicion, respecto a eje x, y o ambos siendo
+ * AXIS_X, AXIS_Y o MODULE los valores respectivamente.
  */
-void Scene::calcShortestDistance(vector<Point> &cp, Point target, Point &nearestp, float &mdist)
+void Scene::calcShortestDistance(vector<Point> &cp, Point target, Point &nearestp, float &mdist, DISTANCE type)
 {
     int sz = cp.size();
     if(sz == 0) return;
 
-    nearestp = cp.at(0);
-    mdist = sqrt( ( (target.x - nearestp.x) * (target.x - nearestp.x) )  +  ( (target.y - nearestp.y) * (target.y - nearestp.y) ) );
-    for(int i = 0; i < sz; i++){
+    vector<Point> copy = cp;
 
-        Point n = cp.at(i);
+    if(type == AXIS_Y){
+        vector<Point> cpy;
+        for(int i = 0; i < sz; i++){
+            Point p = copy.at(i);
+            cpy.push_back(Point(0,p.y));
+        }
+        copy = cpy;
+    }
+
+    if(type == AXIS_X){
+        vector<Point> cpx;
+        for(int i = 0; i < sz; i++){
+            Point p = copy.at(i);
+            cpx.push_back(Point(p.x, 0));
+        }
+        copy = cpx;
+    }
+
+    nearestp = copy.at(0);
+    mdist = sqrt( ( (target.x - nearestp.x) * (target.x - nearestp.x) )  +  ( (target.y - nearestp.y) * (target.y - nearestp.y) ) );
+    nearestp = cp.at(0);
+    for(int i = 0; i < copy.size(); i++){
+        Point n = copy.at(i);
         float dist = sqrt( ( (target.x - n.x) * (target.x - n.x) )   +  ( (target.y - n.y) * (target.y - n.y) ) );
         if(dist < mdist) {
             mdist = dist;
-            nearestp = n;
+            nearestp = cp.at(i);
         }
     }
 }
-
 
 void Scene::slot_vincular( int marker_id, QString recurso, QString formatoCaja )
 {

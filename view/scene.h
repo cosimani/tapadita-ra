@@ -92,10 +92,12 @@ private:
 
     //
     void drawLinesBeetweenMarkers(Mat &frame, vector<Scalar> vsc, int thickness = 3);
-    void drawShortestLineToReference(Mat &frame, Point target, int thickness = 3);
+    void drawShortestLineToTarget(Mat &frame, Point target, int thickness = 3);
 
-    void calcShortestDistance(vector<Point> &cp, Point target, Point &nearestp, float &mdist);
-    void distanceFromPoints();
+    enum DISTANCE {MODULE, AXIS_X, AXIS_Y};
+    void calcShortestDistance(vector<Point> &cp, Point target, Point &nearestp, float &mdist, DISTANCE type = MODULE);
+
+    void drawShortestDistance(Mat &frame, QVector<Marker> mkrs, Point target, DISTANCE type = MODULE, int thickness = 3);
 
 public:
     Scene( QWidget *parent = 0 );
