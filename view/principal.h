@@ -12,8 +12,6 @@ namespace Ui  {
 class Principal : public QWidget  {
     Q_OBJECT
 
-    QMap<QString, QString> fichas_jugadores;
-
 public:
     explicit Principal(QWidget *parent = 0);
     ~Principal();
@@ -24,11 +22,7 @@ public:
     /**
      * @brief startTimer se llama desde ViewController para activar el timer de scene
      */
-    void startTimer();
-
-    // se setean desde viewcontroller cuando se pone visible esta clase
-    void setFichas_jugadores(QMap<QString, QString> fichas_jugadores);
-    QMap<QString, QString> getFichas_jugadores() const;
+    void initPrincipal();
 
 private:
     void cargarCamaras();

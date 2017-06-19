@@ -3,16 +3,23 @@
 
 #include <QString>
 #include <QVector>
+#include <QColor>
 
 class Jugador
 {
     int nro_jugador;
     QString nombre;
     QString foto_perfil;
+    // vectores de markers asociados
+    QVector<int> * vecids;
+
+    // color de marker ganador
+    QColor win_color;
+
+    // color de la triangulacion del equipo
+    QColor teamColor;
 
     static QVector<Jugador*> * jugadoresActuales;
-
-    QVector<int> * vecids;
 
 public:
 
@@ -35,6 +42,10 @@ public:
     void setFoto_perfil(const QString &value);
     QVector<int> *getVecids() const;
     void setVecids(QVector<int> *value);
+    QColor getWin_color() const;
+    void setWin_color(const QColor &value);
+    QColor getTeamColor() const;
+    void setTeamColor(const QColor &value);
 };
 
 #endif // JUGADOR_H

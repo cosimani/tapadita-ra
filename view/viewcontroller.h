@@ -4,7 +4,7 @@
 #define CANTIDAD_MARCADORES 64
 
 #include <QWidget>
-#include "database.hpp"
+#include "model/database.hpp"
 
 namespace Ui {
 class ViewController;
@@ -28,7 +28,7 @@ private:
     void initDataBase();
 
 private slots:
-    void slot_showPrincipal(QMap<QString, QString> fichas_jugadores);
+    void slot_showPrincipal();
 
 signals:
     void sig_startSceneTimer();

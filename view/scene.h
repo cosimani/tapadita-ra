@@ -7,14 +7,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
+
 #include <QDir>
 #include <QFile>
 #include <QTimer>
 #include <QVector>
+#include <QSlider>
 #include <QGLWidget>
+#include <QFileInfo>
 #include <QKeyEvent>
 #include <QMouseEvent>
+#include <QMessageBox>
 #include <QGLFunctions>
+
 
 #include <opencv/highgui.h>
 #include <opencv2/opencv.hpp>
@@ -24,13 +30,17 @@
 
 #include <aruco/aruco.h>
 
-#include "texture.h"
-#include "model.h"
+#include "common.h"
+
+#include "controller/model.h"
 #include "video.h"
-
-#include <QSlider>
-
+#include "controller/texture.h"
+#include "model/database.hpp"
 #include "view/principal.h"
+#include "model/jugador.h"
+#include "controller/cvdrawing.h"
+
+
 
 using namespace cv;
 using namespace std;
@@ -79,6 +89,13 @@ private:
     void drawVideoVinculado( QString videoName, float sizeMarker, unsigned int percentage = 100, int volume = 100 );
     void decreaseVideosVolume();
     void decreaseVideosVolumeVinculados();
+
+    //
+    void drawLinesBeetweenMarkers(Mat &frame, vector<Scalar> vsc, int thickness = 3);
+    void drawShortestLineToReference(Mat &frame, Point target, int thickness = 3);
+
+    void calcShortestDistance(vector<Point> &cp, Point target, Point &nearestp, float &mdist);
+    void distanceFromPoints();
 
 public:
     Scene( QWidget *parent = 0 );

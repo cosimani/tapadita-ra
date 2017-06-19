@@ -2,20 +2,24 @@
 
 QVector<Jugador*>* Jugador::jugadoresActuales = NULL;
 
-QVector<int> *Jugador::getVecids() const
+
+
+QColor Jugador::getTeamColor() const
 {
-    return vecids;
+    return teamColor;
 }
 
-void Jugador::setVecids(QVector<int> *value)
+void Jugador::setTeamColor(const QColor &value)
 {
-    vecids = value;
+    teamColor = value;
 }
 
 Jugador::Jugador(): nro_jugador(-1),
     nombre(""),
     foto_perfil(""),
-    vecids(new QVector<int>())
+    vecids(new QVector<int>()),
+    win_color(0,0,0),
+    teamColor(255,255,255)
 {
     
 }
@@ -49,5 +53,25 @@ QString Jugador::getFoto_perfil() const
 void Jugador::setFoto_perfil(const QString &value)
 {
     foto_perfil = value;
+}
+
+QVector<int> *Jugador::getVecids() const
+{
+    return vecids;
+}
+
+void Jugador::setVecids(QVector<int> *value)
+{
+    vecids = value;
+}
+
+QColor Jugador::getWin_color() const
+{
+    return win_color;
+}
+
+void Jugador::setWin_color(const QColor &value)
+{
+    win_color = value;
 }
 

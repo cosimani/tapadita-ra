@@ -6,9 +6,8 @@
 int main( int argc, char **argv )  {
     QApplication app( argc, argv );
 
-    ViewController principal;
-//    Inicio principal;
-    principal.showMaximized();
+    ViewController vp;
+    vp.showMaximized();
 
     return app.exec();
 }

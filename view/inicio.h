@@ -4,9 +4,9 @@
 #include <QWidget>
 #include <QMap>
 #include <QVector>
-#include "database.hpp"
+#include "model/database.hpp"
 #include "factory.h"
-#include "controller/jugador.h"
+#include "model/jugador.h"
 
 namespace Ui {
 class Inicio;
@@ -17,8 +17,6 @@ class Inicio : public QWidget
     Q_OBJECT
 
     QVector<Jugador *> jugadoresActuales;
-    QMap<QString,QString> currentPlayers;
-    QMap<QString,QString> currentFJ;
 
 public:
     explicit Inicio(QWidget *parent = 0);
@@ -48,11 +46,6 @@ public:
      * @return true si TODOS los jugadores fueron insertados, si algun fallo false.
      */
     bool registrarJugadores();
-    QMap<QString, QString> getCurrentPlayers() const;
-    void setCurrentPlayers(const QMap<QString, QString> &value);
-
-    QMap<QString, QString> getCurrentFJ() const;
-    void setCurrentFJ(const QMap<QString, QString> &value);
 
     QVector<Jugador *> getJugadoresActuales() const;
     void setJugadoresActuales(const QVector<Jugador *> &value);
@@ -64,7 +57,7 @@ private slots:
     void slot_start(bool push);
 
 signals:
-    void sig_start(QMap<QString, QString> fichas_jugadores);
+    void sig_start();
 };
 
 #endif // INICIO_H
