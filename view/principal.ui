@@ -220,21 +220,21 @@
  </widget>
  <customwidgets>
   <customwidget>
+   <class>MiQLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>view/miqlineedit.h</header>
+  </customwidget>
+  <customwidget>
    <class>Logo</class>
    <extends>QWidget</extends>
-   <header>logo.h</header>
+   <header>view/logo.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>Scene</class>
    <extends>QWidget</extends>
-   <header>scene.h</header>
+   <header>view/scene.h</header>
    <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>MiQLineEdit</class>
-   <extends>QLineEdit</extends>
-   <header>view/miqlineedit.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

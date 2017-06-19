@@ -2,28 +2,8 @@
 #include "ui_inicio.h"
 
 #include <QDebug>
+#include <QColor>
 
-/* junior del futuro
- *
- * TODO:
- *
- * 1-ahora que se insertaron en las 3 tablas,
- * ver como pasarle los datos de las rutas de las fotos
- * a la clase Principal (o a Scene).
- *
- * Status: Terminado
- *
- * 2-Despues dibujar la imagen en la tarjeta
- *
- * Status: Terminado
- *
- * 3- Mejorar insercion en la base de datos, para la tabla fichas_jugadores
- * ver como hacerlo con un for o dentro del mismo donde se insertan los jugadores,
- *
- * podria agregar un atributo a Jugador, con la cantidad de fichas que tiene.
- *
- * Status: Terminado
- */
 
 Inicio::Inicio(QWidget *parent) :
     QWidget(parent),
@@ -56,10 +36,19 @@ void Inicio::initDefaultValues()
 // del tipo RegisterPlayer y por cada uno inserta un jugador
 // deberia controlar que no existan en la base de datos (?)
 bool Inicio::registrarJugadores(){
-    qDebug() << "entro a registrarJugador";
+//    qDebug() << "entro a registrarJugador";
 
     bool ip = insertPlayersInDB();
     bool iv = insertVinculosInDB();
+
+    // seteo los colores por defecto de los jugadores (solo 2 colores)
+    QVector<QColor> vcw = { QColor(255,255,0), QColor(255,0,255) };
+    QVector<QColor> vct = { QColor(255,0,0), QColor(0,0,255) };
+    QVector<Jugador*> *vp = Jugador::getJugadoresActuales();
+    for(int i = 0; i < vp->size(); i++) {
+        vp->at(i)->setWin_color(vcw.at(i));
+        vp->at(i)->setTeamColor(vct.at(i));
+    }
 
     return ip && iv;
 }
@@ -106,7 +95,7 @@ bool Inicio::insertPlayersInDB()
             jug->setNombre(nom);
             // consultar el id del jugador y setearselo
             int nro_jug = Database::getInstance()->getLastRow("jugadores", "nro_jugador");
-            qDebug() << "ultimo jug:" << nro_jug;
+//            qDebug() << "ultimo jug:" << nro_jug;
             jug->setNro_jugador(nro_jug);
 
             Jugador::getJugadoresActuales()->append(jug);
@@ -124,29 +113,9 @@ bool Inicio::insertPlayersInDB()
  */
 bool Inicio::insertVinculosInDB()
 {
-    qDebug() << "insertVinculosJugadoresDB";
-    /* TODO:
-     * una vez registrados los jugadores, debo asociarlos con un(os)
-     * marcadores. para ello, tengo que insertar en la tabla
-     * fichas_jugador el id del marcador y el nro de jugador
-     *
-     * Status: terminado. Pero podria mejorarse
-     *
-     * VERIFICAR: el marker id va a corresponder con el de la tabla ? si,
-     * porque si estan todas las fichas, siempre va a corresponder
-     * con alguno
-    */
+//    qDebug() << "insertVinculosJugadoresDB";
 
-    QMap <QString, QString> mapFichas_Jugador;
     QVector<Jugador*> *vp = Jugador::getJugadoresActuales();
-
-    /* dejo asociado 1 marker a cada jugador con estos id. en el futuro (ahre)
-     * deberia tener minimo un vector o levantar los id de cada marker de algun
-     * lado. y hacer un ciclo dentro de otro, poniendo los jugadores con los ids
-     * que correspondan.
-     *
-     * Status: terminado
-     */
 
     // cargo los valores por defecto del jugador 1 y 2
     QVector<int> jf1 = { 106, 111, 112 };
@@ -166,7 +135,6 @@ bool Inicio::insertVinculosInDB()
     for(int i = 0; i < vp->size(); i++){
         Jugador * jug = vp->at(i);
         QStringList vinculos;
-
         for(int j = 0; j < jug->getVecids()->size(); j++){
 
             vinculos.clear();
@@ -175,11 +143,24 @@ bool Inicio::insertVinculosInDB()
             vinculos.append("null"); // recurso
             vinculos.append("null"); // formato caja
 
-            if(!Database::getInstance()->insert_into("vinculos", vinculos)){
+            if(!Database::getInstance()->insert_into("vinculos", vinculos)) {
                 qDebug() << "bool Inicio::insertVinculosInDB(): No se pudo insertar en tabla vinculos";
                 return false;
             }
         }
+    }
+
+
+    // cargo el marker especial
+    QStringList vinculos;
+    vinculos.append( QString::number( 108 ) ); // marker_id
+    vinculos.append("null" );   // nro_jugador
+    vinculos.append(" '/home/jrjs/target.png' "); // recurso
+    vinculos.append("null"); // formato caja
+
+    if(!Database::getInstance()->insert_into("vinculos", vinculos)) {
+        qDebug() << "bool Inicio::insertVinculosInDB(): (2) No se pudo insertar en tabla vinculos";
+        return false;
     }
 
     return true;
@@ -195,33 +176,12 @@ void Inicio::slot_start(bool push)
     }
 
     qDebug() << "slot_start, se pulso button";
-    emit sig_start(this->getCurrentFJ());
+    emit sig_start();
 }
 
 
 
 //---------------------- Getters and setters -----------------------------
-
-
-QMap<QString, QString> Inicio::getCurrentPlayers() const
-{
-    return currentPlayers;
-}
-
-void Inicio::setCurrentPlayers(const QMap<QString, QString> &value)
-{
-    currentPlayers = value;
-}
-
-QMap<QString, QString> Inicio::getCurrentFJ() const
-{
-    return currentFJ;
-}
-
-void Inicio::setCurrentFJ(const QMap<QString, QString> &value)
-{
-    currentFJ = value;
-}
 
 QVector<Jugador *> Inicio::getJugadoresActuales() const
 {

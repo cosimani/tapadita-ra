@@ -83,7 +83,6 @@ public:
     // creadores de tablas
     bool createTableVinculos();
     bool createTableJugadores();
-    bool createTableFichas();
 
     bool saveVinculo(int marker_id, QString recurso , QString formatoCaja = "n");
     QVector<QStringList> readVinculos();

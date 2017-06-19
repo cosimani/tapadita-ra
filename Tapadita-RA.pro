@@ -1,6 +1,6 @@
 #---------------------------------
 #
-# Proyecto de Interaccion Natural
+# Proyecto Tapadita -version-tejo-
 #
 #---------------------------------
 
@@ -111,7 +111,7 @@ win32:LIBS += -l3ds
 
 
 SOURCES += main.cpp\
-           scene.cpp \
+           view/scene.cpp \
            aruco/ar_omp.cpp \
            aruco/arucofidmarkers.cpp \
            aruco/board.cpp \
@@ -121,7 +121,7 @@ SOURCES += main.cpp\
            aruco/marker.cpp \
            aruco/markerdetector.cpp \
            aruco/subpixelcorner.cpp \
-    database.cpp \
+    model/database.cpp \
     view/viewcontroller.cpp \
     view/registerplayer.cpp \
     view/mibutton.cpp \
@@ -131,12 +131,13 @@ SOURCES += main.cpp\
     view/inicio.cpp \
     view/principal.cpp \
     view/miqlineedit.cpp \
-    controller/jugador.cpp \
-    factory.cpp
+    factory.cpp \
+    controller/cvdrawing.cpp \
+    model/jugador.cpp
 
-HEADERS += model.h \
-           scene.h \
-           texture.h \
+HEADERS += controller/model.h \
+           view/scene.h \
+           controller/texture.h \
            video.h \
            aruco/ar_omp.h \
            aruco/aruco.h \
@@ -149,8 +150,8 @@ HEADERS += model.h \
            aruco/marker.h \
            aruco/markerdetector.h \
            aruco/subpixelcorner.h \
-    logo.h \
-    database.hpp \
+    view/logo.h \
+    model/database.hpp \
     common.h \
     view/viewcontroller.h \
     view/registerplayer.h \
@@ -161,8 +162,9 @@ HEADERS += model.h \
     view/inicio.h \
     view/principal.h \
     view/miqlineedit.h \
-    controller/jugador.h \
-    factory.h
+    factory.h \
+    controller/cvdrawing.h \
+    model/jugador.h
 
 FORMS += \
     view/viewcontroller.ui \
@@ -177,4 +179,4 @@ DISTFILES += \
     Files/db.sqlite \
     Files/CameraParameters.yml \
     images/empty_profile.jpg \
-    images/empty_profile2.jpg
+    images/empty_profile2.jpg \

@@ -34,11 +34,6 @@ void ProfilePicture::slot_loadImage(QString path)
     ui->imProfile->setImage(path, false);
 }
 
-
-
-
-
-
 //---------------------------- getters and setters ------------------------------------
 
 QString ProfilePicture::getPathFoto_perfil() const

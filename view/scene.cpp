@@ -2,13 +2,7 @@
 #include <QApplication>
 #include "ui_principal.h"  // Necesario para acceder al ui de Principal
 
-#include "database.hpp"
-#include <QMessageBox>
-#include <QFileInfo>
-#include <QDir>
-#include "common.h"
-#include "controller/jugador.h"
-#include <QVector>
+
 
 /* Junior del futuro:
  *
@@ -18,7 +12,7 @@
  * pero quiero saber como hace eso antes de continuar
  * con el proyecto.
  *
- * Status: terminado
+ * Status: terminado.
  * Lo hace en paintgl donde a cada marker le pide su matrix y luego la setea
  *
  * TODO:
@@ -26,6 +20,11 @@
  * en la bd si existe la relacion (num_jug, marker_id)
  * pero no esta bueno que sea asi, deberia ser mas eficiente.
  *
+ * Status: terminado
+ *
+ * 3- Determinar en que momento puedo dibujar en pantalla
+ *    en el paintgl no puedo => y tampoco deberia si lo hago con opencv.
+ * pero si dibujo en process, las lineas se ven abajo del marker
  *
  */
 
@@ -50,7 +49,6 @@ Scene::Scene( QWidget *parent ) : QGLWidget( parent ),
 
                                   principal ( (Principal*) parent )
 {
-//    this->setFixedSize( videoCapture->get( CV_CAP_PROP_FRAME_WIDTH ), videoCapture->get( CV_CAP_PROP_FRAME_HEIGHT ) );
 
     videoCapture = new cv::VideoCapture();
 
@@ -338,6 +336,9 @@ void Scene::paintGL()
         glTexCoord2f( 0, 1 ); glVertex3f( 0, 0, -999 );
 
     glEnd();
+
+
+
     glDisable( GL_TEXTURE_2D );
 
     // Fin: Gráfico de cámara
@@ -353,25 +354,12 @@ void Scene::paintGL()
     glMatrixMode( GL_MODELVIEW );
     double modelview_matrix[16];
 
-    // Si este check box esta seteado, entocnes no mostrar el contenido virtual
-    if ( principal->ui->cbSinContenido->isChecked() )
-        return;
-
-
-
     // Inicio: Gráfico en marcadores
 
-
-    /* algoritmo relacion marker_id con jugador
-     *
-     * los jugadores siempre estan en la misma posicion, y lo que va variando son los marcadores
-     *
-     * 1- podria hacer un for de jugadores y dentro un for de marcadores detectados,
-     *    dentro pregunto si la consulta from fichas_jugador de esa combinacion devuelve algo
-     *    en caso verdadero => dibujo la imagen
-     *    falso => no dibujo
+    /* itero sobre la cantidad de jugadores, y por cada jugador, pregunto
+     * si entre los markers detectados, el marker corresponde a ese jugador
+     * en caso de ser cierto, dibujo la imagen de ese jugador
     */
-
     float coefTamano = (float)principal->ui->sbTamano->value() / (float)100;
     QVector<Jugador*> * vp = Jugador::getJugadoresActuales();
     for(int i = 0; i < vp->size(); i++){
@@ -386,24 +374,25 @@ void Scene::paintGL()
             // y se setea la matrix de ese marcador, para que la pueda dibujar y seguir
             glLoadMatrixd( modelview_matrix );
 
+
+            //-------------------Inicio: dibujo imagen en marker ----------------------
             int mi = detectedMarkers.at(j).id;            
             // pregunto si el jugador tiene en su vector de ids, el
             // id del marcador encontrado y dibujo su foto si esta esa relacion.
             if( jug->getVecids()->indexOf(mi) != -1) {
                 drawSheet(fp, detectedMarkers.at( j ).ssize, 100 * coefTamano);
             }
+            //-------------------Fin: dibujo imagen en marker ----------------------
+
+            // si detecto el marker especial
+            if( mi == 108 ){
+                drawSheet("/home/jrjs/obj.png", detectedMarkers.at( j ).ssize, 100 * coefTamano);
+            }
+
         }
     }
 
     // Fin: Gráfico en marcadores
-
-
-    // La siguiente linea se ejecuta siempre. Habria que ingeniarsela de otra forma para bajar el volumen
-    decreaseVideosVolume();
-    decreaseVideosVolumeVinculados();
-
-    // Fin: Gráfico en marcadores
-
     glFlush();
 
 }
@@ -476,7 +465,7 @@ void Scene::drawSheetVinculadas(QString textureName, float sizeMarker, unsigned 
  */
 void Scene::drawSheet(QString textureName, float sizeMarker, unsigned int percentage )
 {
-    qDebug() << "<<<<<<<<<<<<<<<<< drawSheet <<<<<<<<<<<<<<<<<<<<<<<<<";
+//    qDebug() << "<<<<<<<<<<<<<<<<< drawSheet <<<<<<<<<<<<<<<<<<<<<<<<<";
     sizeMarker = sizeMarker * (float)percentage / (float)100;
     for( int i = 0; i < textures->size(); i++ )
     {
@@ -489,11 +478,6 @@ void Scene::drawSheet(QString textureName, float sizeMarker, unsigned int percen
             glBegin( GL_QUADS );
 
                 glNormal3f( 0.0f, 0.0f,-1.0f);
-                qDebug() << "\nposicion marker";
-                qDebug() << "1st" <<  -sizeMarker/2 << -sizeMarker/2;
-                qDebug() << "2nd" << -sizeMarker/2 <<  sizeMarker/2;
-                qDebug() << "3rd" << sizeMarker/2 <<  sizeMarker/2;
-                qDebug() << "4th" << sizeMarker/2 <<  -sizeMarker/2;
                 glTexCoord2f( 1.0f, 0.0f ); glVertex3f(-sizeMarker/2, -sizeMarker/2, 0 );
                 glTexCoord2f( 1.0f, 1.0f ); glVertex3f(-sizeMarker/2,  sizeMarker/2, 0 );
                 glTexCoord2f( 0.0f, 1.0f ); glVertex3f( sizeMarker/2,  sizeMarker/2, 0 );
@@ -775,12 +759,140 @@ void Scene::process( Mat &frame )
     markerDetector->detect( binaryMat, detectedMarkersVector, *cameraParameters, 0.08f );
     detectedMarkers = QVector< Marker >::fromStdVector( detectedMarkersVector );
 
+
     // descripcion del marker
-    if ( principal->ui->cbMostrarId->isChecked() )
+    if ( principal->ui->cbMostrarId->isChecked() ) {
         for( int i = 0; i < detectedMarkers.size(); i++ ) {
             detectedMarkers.at( i ).draw( frame, Scalar( 255, 0, 255 ), 1 );
         }
+    }
+
+    // obtengo el target de mkr especial
+    Point target;
+    for( int i = 0; i < detectedMarkers.size(); i++ ) {
+        if(detectedMarkers.at( i ).id == 108){
+            target = detectedMarkers.at(i).getCenter();
+        }
+    }
+
+    // dibujo de lineas por equipos
+    Scalar c1(255,255,0), c2(255,0,255);
+    vector<Scalar> vsc = {c1, c2};
+    int thickness = 8;
+//    drawLinesBeetweenMarkers(frame, vsc, thickness);
+
+
+    // dibujo linea mas corta
+    drawShortestLineToReference(frame, target);
 }
+
+
+/**
+ * @brief Scene::drawLinesBeetweenMarkers Por cada jugador, itera sobre los markes
+ * visibles de cada jugador y desde el centro de cada marker dibuja una linea.
+ * @param frame imagen donde va a dibujar
+ * @param vsc vector de colores, uno por jugador
+ * @param thickness grosor de la linea. 3 por defecto
+ */
+void Scene::drawLinesBeetweenMarkers(Mat &frame, vector<Scalar> vsc, int thickness)
+{
+    vector<Point> cp;
+    QVector<Jugador*> * vp = Jugador::getJugadoresActuales();
+    if(vp->size() != vsc.size() ) {
+        qDebug() << "ERROR: void Scene::drawLinesBeetweenMarkers. no hay suficientes colores para cada jugador";
+        return;
+    }
+
+    for(int i = 0; i < vp->size(); i++){
+        Jugador * j = vp->at(i);
+        cp.clear();
+        for( int k = 0; k < detectedMarkers.size(); k++ ) {
+            Marker m = detectedMarkers.at( k );
+            Point mkr_center = m.getCenter();
+
+            if(j->getVecids()->indexOf(m.id) != -1)
+                cp.push_back(Point(mkr_center.x , mkr_center.y));
+        }
+        if(cp.size() != 0){
+            QColor c = j->getTeamColor();
+            Scalar color(c.red(), c.green(), c.blue());
+            CvDrawing::LinesBetweenPoints(frame, cp, color, thickness);
+        }
+    }
+}
+
+/**
+ * @brief Scene::drawShortestLineToReference dibuja la linea mas corta al target
+ * de cada equipo
+ * @param frame el mat donde dibuja
+ * @param target el punto de referencia donde va a calcular las lineas
+ * @param thickness el grosor de las lineas
+ */
+void Scene::drawShortestLineToReference(Mat &frame, Point target, int thickness)
+{
+    vector<Point> cp;
+    QVector<float> mrkcercanos;
+    QVector<QString> NearestMkrs;
+    QVector<Jugador*> * vp = Jugador::getJugadoresActuales();
+    for(int i = 0; i < vp->size(); i++){
+        Jugador * j = vp->at(i);
+        cp.clear();
+
+        Point npt;
+        float minDist = -1;
+
+        for( int k = 0; k < detectedMarkers.size(); k++ ) {
+            Marker m = detectedMarkers.at( k );
+            Point mkr_center = m.getCenter();
+
+            if(j->getVecids()->indexOf(m.id) != -1)
+                cp.push_back(mkr_center);
+        }
+
+        calcShortestDistance(cp, target, npt, minDist);
+
+        if(minDist != -1 || cp.size() != 0){
+            QColor c = j->getWin_color();
+            Scalar co(c.red(), c.green(), c.blue());
+            cv::line(frame, target, npt, co, thickness);
+            int md = minDist;
+            NearestMkrs.append(j->getNombre() + " esta a " + QString::number(md));
+        }
+    }
+
+
+    for(int i = 0; i < NearestMkrs.size(); i++) {
+        cv::putText(frame, NearestMkrs.at(i).toStdString(), Point(0, 30 + i * 30) , FONT_HERSHEY_PLAIN, 2, Scalar(0,255,0));
+    }
+}
+
+/**
+ * @brief Scene::calcShortestDistance calcula la distancia mas corta entre los puntos
+ * del vector cp y el target. Carga el punto mas cercano en nearestp y la distancia
+ * en mdist
+ * @param cp vector de puntos
+ * @param target punto de referencia para calcular las distancias
+ * @param nearestp objeto donde carga el punto mas cercano
+ * @param mdist distancia minima entre los puntos del vector y el target
+ */
+void Scene::calcShortestDistance(vector<Point> &cp, Point target, Point &nearestp, float &mdist)
+{
+    int sz = cp.size();
+    if(sz == 0) return;
+
+    nearestp = cp.at(0);
+    mdist = sqrt( ( (target.x - nearestp.x) * (target.x - nearestp.x) )  +  ( (target.y - nearestp.y) * (target.y - nearestp.y) ) );
+    for(int i = 0; i < sz; i++){
+
+        Point n = cp.at(i);
+        float dist = sqrt( ( (target.x - n.x) * (target.x - n.x) )   +  ( (target.y - n.y) * (target.y - n.y) ) );
+        if(dist < mdist) {
+            mdist = dist;
+            nearestp = n;
+        }
+    }
+}
+
 
 void Scene::slot_vincular( int marker_id, QString recurso, QString formatoCaja )
 {
