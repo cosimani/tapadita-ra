@@ -1,7 +1,7 @@
 #include "scene.h"
 #include <QApplication>
 #include "ui_principal.h"  // Necesario para acceder al ui de Principal
-
+#include "model/qrcode.h"
 
 
 /* Junior del futuro:
@@ -11,6 +11,12 @@
  * 1. dibujar linea horizontal en la imagen de la camara.
  *
  * 2. medir distancia entre la linea horizontal y un marker
+ *
+ * 3. hacer que se cambie de imagen segun si el marker esta activo
+ * en el paitgl
+ *
+ *
+ * 4- HACER EL METODO markerInPoly-> terminarlo bien para que quede mas generico
  *
  */
 
@@ -366,7 +372,20 @@ void Scene::paintGL()
             // pregunto si el jugador tiene en su vector de ids, el
             // id del marcador encontrado y dibujo su foto si esta esa relacion.
             if( jug->getVecids()->indexOf(mi) != -1) {
-                drawSheet(fp, detectedMarkers.at( j ).ssize, 100 * coefTamano);
+
+                // tengo que ver a quien pertenece el id en mi y ver si esta visible el marker
+
+                for(int k = 0; k < jug->getFichas()->size(); k++){
+                    QRCode * qrc = jug->getFichas()->at(k);
+
+                    if (qrc->getMkr().id == mi) {
+
+                        if(qrc->getVisible() )
+                            drawSheet(fp, detectedMarkers.at( j ).ssize, 100 * coefTamano);
+                        else
+                            drawSheet("/home/jrjs/proyectos-qt/tapadita-ra/images/calavera5.png", detectedMarkers.at( j ).ssize, 100 * coefTamano);
+                    }
+                }
             }
             //-------------------Fin: dibujo imagen en marker ----------------------
 
@@ -374,7 +393,6 @@ void Scene::paintGL()
             if( mi == 108 ){
                 drawSheet("/home/jrjs/obj.png", detectedMarkers.at( j ).ssize, 100 * coefTamano);
             }
-
         }
     }
 
@@ -745,21 +763,43 @@ void Scene::process( Mat &frame )
     markerDetector->detect( binaryMat, detectedMarkersVector, *cameraParameters, 0.08f );
     detectedMarkers = QVector< Marker >::fromStdVector( detectedMarkersVector );
 
-
     // descripcion del marker
     if ( principal->ui->cbMostrarId->isChecked() ) {
-        for( int i = 0; i < detectedMarkers.size(); i++ ) {
+        for( int i = 0; i < detectedMarkers.size(); i++ )
             detectedMarkers.at( i ).draw( frame, Scalar( 255, 0, 255 ), 1 );
+    }
+
+    QVector<Jugador*> * vp = Jugador::getJugadoresActuales();
+
+    clearJugadores(vp);
+    initJugadores(vp, detectedMarkers);
+
+    int winnerLine = 150;
+    int zonaTriangulacion = 75;
+    drawGameLines(frame);
+
+    // obtengo los markers a utilizar
+    QVector<Marker> mvec;
+    for( int i = 0; i < detectedMarkers.size(); i++ ) {
+        Marker m = detectedMarkers.at( i );
+        int mkr_y = m.getCenter().y;
+        if( !(mkr_y < winnerLine) ){
+            mvec.append(detectedMarkers.at(i));
         }
     }
 
+    Point AxisYtarget(0, winnerLine);
+    // dibujo linea mas corta al la linea de referencia
+    drawShortestDistance(frame, vp ,mvec, AxisYtarget, DISTANCE::AXIS_Y);
 
-    /* dibujo lienas entre markers del mismo equipo
+    killOutOfZoneMarkers(vp, zonaTriangulacion);
+    determineDeadPlayers(vp);
+
+    //* dibujo lienas entre markers del mismo equipo
     Scalar c1(255,255,0), c2(255,0,255);
     vector<Scalar> vsc = {c1, c2};
-    int thickness = 8;
-    drawLinesBeetweenMarkers(frame, vsc, thickness);
-    */
+    int thickness = 3;
+    drawLinesBeetweenMarkers(frame, vp, vsc, thickness);
 
     /* dibujo distancia mas corta a marker especial
      *
@@ -773,27 +813,186 @@ void Scene::process( Mat &frame )
     // dibujo linea mas corta al target
     drawShortestDistanceInAxis(frame, detectedMarkers, target, DISTANCE::MODULE);
     */
+}
 
 
-    // reference line
-    int ref_y = 100;
-    Point AxisYtarget(0, ref_y);
-    cv::line(frame, Point(0,ref_y), Point(640, ref_y), Scalar(255,255,255), 5);
 
-    // remuevo los markers a utilizar
-    QVector<Marker> mvec;
-    for( int i = 0; i < detectedMarkers.size(); i++ ) {
-        Marker m = detectedMarkers.at( i );
-        int mkr_y = m.getCenter().y;
-        if( !(mkr_y < ref_y) ){
-            mvec.append(detectedMarkers.at(i));
+/**
+ * @brief Scene::markerInPolygon determina si qrc esta encerrado
+ * en una triangulacion hecha por el jugador jug.
+ * @param qrc es un QRCode, de su posicion se determina si esta
+ * dentro del poligono de otro vector.
+ * @param jug es un jugador, del cual se analiza su vector de fichas
+ * y se guardan las posiciones de estas para formar el poligono.
+ * @return true en caso de que ese QRCode este dentro de alguna
+ * triangulacion valida por las fichas del jugador jug
+ */
+bool Scene::markerInPolygon(QRCode * qrc, Jugador * jug)
+{
+    QVector<float> *vertx = new QVector<float>();
+    QVector<float> *verty = new QVector<float>();
+    int nvert = 0;
+
+    for(int i = 0; i < jug->getFichas()->size(); i++){
+        QRCode * code = jug->getFichas()->at(i);
+
+        if( code->getVisible() == true){
+            vertx->append(code->getCordX());
+            verty->append(code->getCordY());
+            nvert++;
         }
     }
 
-    // dibujo linea mas corta al la linea de referencia
-    drawShortestDistance(frame, mvec, AxisYtarget, DISTANCE::AXIS_Y);
+    int res = pnpoly(nvert, vertx, verty, qrc->getCordX(), qrc->getCordY());
+
+    if(res) {
+//        qDebug() << "marker:" << qrc->getMkr().id << " DESACTIVADO";
+        qrc->setVisible(false);
+        return false;
+    }
+    else {
+//        qDebug() << "marker:" << qrc->getMkr().id << " ACTIVADO";
+        qrc->setVisible(true);
+        return true;
+    }
 }
 
+
+/**
+ * @brief Scene::killOutOfZoneMarkers pongo como no visibles, las fichas
+ * que su centro esta fuera de zone.
+ * @param vp vector de jugadores a analizar
+ * @param zone valor maximo de Y en el area a buscar
+ */
+void Scene::killOutOfZoneMarkers(QVector<Jugador *> *vp, int zone)
+{
+    for(int i = 0; i < vp->size(); i++){
+        Jugador * j = vp->at(i);
+
+        for(int k = 0; k < j->getFichas()->size(); k++){
+            QRCode * qrc = j->getFichas()->at(k);
+            if( qrc->getCordY() < zone )
+                qrc->setVisible(false);
+        }
+    }
+}
+
+/**
+ * @brief Scene::determineDeadPlayers recorro todos los jugadores
+ * y las fichas de cada uno, y si estan visibles, veo si estan
+ * encerradas por un poligono de algun jugador.
+ * @param vp vector de jugadores a analizar
+ */
+void Scene::determineDeadPlayers(QVector<Jugador *> *vp)
+{
+    for(int i = 0; i < vp->size(); i++){
+        Jugador * ji = vp->at(i);
+
+        for(int k = 0; k < ji->getFichas()->size(); k++){
+            QRCode * qrc = ji->getFichas()->at(k);
+
+            if( qrc->getVisible() == false )
+                continue;
+
+            for(int n = 0; n < vp->size(); n++){
+                Jugador * jj = vp->at(n);
+
+                // dos jugadores son el mismo si estan en la misma posicion del vector vp
+                if ( i != n )
+                    markerInPolygon(qrc, jj);
+            }
+        }
+    }
+}
+
+/**
+ * @brief Scene::drawGameLines dibujo las lineas de cada zona del juego
+ */
+void Scene::drawGameLines(Mat &frame)
+{
+    int height = 480;
+    int winnerLine = 150;
+    int refLine = height - winnerLine;
+    int zonaTriangulacion = 75;
+    int zona1 = winnerLine + (refLine / 2);
+    int zona2 = zona1 + (refLine / 2);
+
+    // winner line
+    cv::line(frame, Point(0, winnerLine), Point(640, winnerLine), Scalar(0,0,0), 1);
+    // zona de triangulacion
+    cv::line(frame, Point(0,zonaTriangulacion), Point(640, zonaTriangulacion), Scalar(255,255,255), 1);
+    // zona 1000 puntos
+    cv::line(frame, Point(0,zona1), Point(640, zona1), Scalar(255,255,255), 1);
+    // zona 500 puntos
+    cv::line(frame, Point(0,zona2), Point(640, zona2), Scalar(255,255,255), 1);
+}
+
+/**
+ * @brief Scene::initJugadores inicializo los jugadores que vienen
+ * como parametro y verifico si en el vector de marker detectados
+ * que viene como parametro esta algun marker que pertenece a algun
+ * jugador. En ese caso, crea un QRcode y lo agrega al vector
+ * de fichas de cada jugador.
+ * @param vp vector de jugadores que quiero inicializar
+ * @param dm vector de markers que quiero setear a cada jugador
+ */
+void Scene::initJugadores(QVector<Jugador *> *vp, QVector<Marker> &dm)
+{
+    // seteo el centro de marker detectado y la cantidad a cada jugador
+    for(int i = 0; i < vp->size(); i++){
+
+        Jugador * j = vp->at(i);
+
+        for( int k = 0; k < dm.size(); k++ ) {
+
+            Marker m = dm.at( k );
+            Point mkr_center = m.getCenter();
+
+            if(j->getVecids()->indexOf(m.id) != -1) {
+                QPoint p(mkr_center.x, mkr_center.y);
+                QRCode * qrc = QRCode::createQRC(m, p.x(), p.y(), true);
+
+                j->getFichas()->append(qrc);
+            }
+        }
+    }
+}
+
+/**
+ * @brief Scene::clearJugadores borro las fichas de cada jugador,
+ * porque estas se actualizan en cada frame.
+ * @param vp vector de jugadores que quiero reestablecer.
+ */
+void Scene::clearJugadores(QVector<Jugador *> *vp)
+{
+    for(int i = 0; i < vp->size(); i++) {
+        Jugador * j = vp->at(i);
+        j->getFichas()->clear();
+    }
+}
+
+/*
+nvert: Number of vertices in the polygon. Whether to repeat the first
+vertex at the end has been discussed in the article referred above.
+==> cantidad de markers detectados para ese jugador
+
+vertx, verty: Arrays containing the x- and y-coordinates of the polygon's vertices.
+==> por cada marker detectado de cada jugador, agrego la posicion en x e y a un vector
+
+testx, testy: X- and y-coordinate of the test point.
+==> coordenadas de cada marker, para ver cual esta dentro de un
+poligono
+ */
+int Scene::pnpoly(int nvert, QVector<float> *vertx, QVector<float> *verty, float testx, float testy)
+{
+    int i, j, c = 0;
+     for (i = 0, j = nvert-1; i < nvert; j = i++) {
+       if ( ( (verty->at(i) > testy) != (verty->at(j) > testy) ) &&
+        (testx < (vertx->at(j) - vertx->at(i) ) * (testy - verty->at(i) ) / (verty->at(j) - verty->at(i) ) + vertx->at(i) ) )
+          c = !c;
+     }
+     return c;
+}
 
 /**
  * @brief Scene::drawLinesBeetweenMarkers Por cada jugador, itera sobre los markes
@@ -802,25 +1001,33 @@ void Scene::process( Mat &frame )
  * @param vsc vector de colores, uno por jugador
  * @param thickness grosor de la linea. 3 por defecto
  */
-void Scene::drawLinesBeetweenMarkers(Mat &frame, vector<Scalar> vsc, int thickness)
+void Scene::drawLinesBeetweenMarkers(Mat &frame, QVector<Jugador *> * vp ,vector<Scalar> vsc, int thickness)
 {
-    vector<Point> cp;
-    QVector<Jugador*> * vp = Jugador::getJugadoresActuales();
+//    qDebug() << "drawLinesBeetweenMarkers";
     if(vp->size() != vsc.size() ) {
         qDebug() << "ERROR: void Scene::drawLinesBeetweenMarkers. no hay suficientes colores para cada jugador";
         return;
     }
 
+    vector<Point> cp;
+
     for(int i = 0; i < vp->size(); i++){
         Jugador * j = vp->at(i);
         cp.clear();
-        for( int k = 0; k < detectedMarkers.size(); k++ ) {
-            Marker m = detectedMarkers.at( k );
-            Point mkr_center = m.getCenter();
 
-            if(j->getVecids()->indexOf(m.id) != -1)
+        for( int k = 0; k < j->getFichas()->size(); k++ ) {
+
+            QRCode * qrc = j->getFichas()->at( k );
+            Marker m = qrc->getMkr();
+            Marker * m1 = &m;
+            Point mkr_center = m1->getCenter();
+
+//            qDebug() << "drawLinesBeetweenMarkers visible:" << qrc->getVisible();
+            if(j->getVecids()->indexOf(m.id) != -1 && qrc->getVisible() ){
                 cp.push_back(Point(mkr_center.x , mkr_center.y));
+            }
         }
+
         if(cp.size() != 0){
             QColor c = j->getTeamColor();
             Scalar color(c.red(), c.green(), c.blue());
@@ -840,11 +1047,10 @@ void Scene::drawLinesBeetweenMarkers(Mat &frame, vector<Scalar> vsc, int thickne
  * AXIS_X, AXIS_Y o MODULE los valores respectivamente.
  * @param thickness el grosor de las lineas. 3 por default
  */
-void Scene::drawShortestDistance(Mat &frame, QVector< Marker > mkrs,  Point target, DISTANCE type, int thickness)
+void Scene::drawShortestDistance(Mat &frame, QVector<Jugador *> * vp ,QVector< Marker > mkrs,  Point target, DISTANCE type, int thickness)
 {
     vector<Point> cp;
     QVector<QString> NearestMkrs;
-    QVector<Jugador*> * vp = Jugador::getJugadoresActuales();
     for(int i = 0; i < vp->size(); i++){
         Jugador * j = vp->at(i);
         cp.clear();

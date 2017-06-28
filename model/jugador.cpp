@@ -3,21 +3,11 @@
 QVector<Jugador*>* Jugador::jugadoresActuales = NULL;
 
 
-
-QColor Jugador::getTeamColor() const
-{
-    return teamColor;
-}
-
-void Jugador::setTeamColor(const QColor &value)
-{
-    teamColor = value;
-}
-
 Jugador::Jugador(): nro_jugador(-1),
     nombre(""),
     foto_perfil(""),
     vecids(new QVector<int>()),
+    fichas(new QVector<QRCode *>()),
     win_color(0,0,0),
     teamColor(255,255,255)
 {
@@ -75,3 +65,22 @@ void Jugador::setWin_color(const QColor &value)
     win_color = value;
 }
 
+QColor Jugador::getTeamColor() const
+{
+    return teamColor;
+}
+
+void Jugador::setTeamColor(const QColor &value)
+{
+    teamColor = value;
+}
+
+QVector<QRCode *> *Jugador::getFichas() const
+{
+    return fichas;
+}
+
+void Jugador::setFichas(QVector<QRCode *> *value)
+{
+    fichas = value;
+}

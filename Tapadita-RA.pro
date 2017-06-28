@@ -133,7 +133,8 @@ SOURCES += main.cpp\
     view/miqlineedit.cpp \
     factory.cpp \
     controller/cvdrawing.cpp \
-    model/jugador.cpp
+    model/jugador.cpp \
+    model/qrcode.cpp
 
 HEADERS += controller/model.h \
            view/scene.h \
@@ -164,7 +165,8 @@ HEADERS += controller/model.h \
     view/miqlineedit.h \
     factory.h \
     controller/cvdrawing.h \
-    model/jugador.h
+    model/jugador.h \
+    model/qrcode.h
 
 FORMS += \
     view/viewcontroller.ui \

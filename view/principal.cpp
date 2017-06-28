@@ -58,6 +58,9 @@ void Principal::initPrincipal()
     QString targetPath("/home/jrjs/obj.png");
     ui->scene->addTexture(targetPath);
 
+    QString deadMarkerPath("/home/jrjs/proyectos-qt/tapadita-ra/images/calavera5.png");
+    ui->scene->addTexture(deadMarkerPath);
+
     // cuando se llama a este metodo, comienza a estar visible esta clase
     ui->scene->getSceneTimer()->start(10);
 }
