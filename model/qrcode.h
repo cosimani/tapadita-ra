@@ -20,11 +20,18 @@ class QRCode
     // player activo
     bool visible;
 
+    // distancia a la linea
+    float distanceToTarget;
+
 public:
+
+    enum ESTADO {valid, dead, triangulation};
+
+    ESTADO estado;
 
     QRCode();
 
-    static QRCode *createQRC(Marker mkr, float cordX = -1, float cordY = -1 , bool activo = false);
+    static QRCode *createQRC(Marker mkr, float cordX = -1, float cordY = -1 , bool activo = false, ESTADO estado = ESTADO::valid);
     static QRCode *createQRC();
 
     bool getVisible() const;
@@ -35,6 +42,10 @@ public:
     void setCordY(float value);
     Marker getMkr() const;
     void setMkr(const Marker &value);
+    ESTADO getEstado() const;
+    void setEstado(const ESTADO &value);
+    float getDistanceToTarget() const;
+    void setDistanceToTarget(float value);
 };
 
 #endif // QRCODE_H

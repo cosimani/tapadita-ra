@@ -3,18 +3,20 @@
 QRCode::QRCode():
     cordX(0),
     cordY(0),
-    visible(false)
+    visible(false),
+    distanceToTarget(-1)
 {
     
 }
 
-QRCode *QRCode::createQRC(Marker mkr, float cordX, float cordY, bool visible)
+QRCode *QRCode::createQRC(Marker mkr, float cordX, float cordY, bool visible, ESTADO estado)
 {
     QRCode * qrc = new QRCode();
     qrc->setMkr(mkr);
     qrc->setCordX(cordX);
     qrc->setCordY(cordY);
     qrc->setVisible(visible);
+    qrc->setEstado(estado);
 
     return qrc;
 }
@@ -66,4 +68,24 @@ Marker QRCode::getMkr() const
 void QRCode::setMkr(const Marker &value)
 {
     mkr = value;
+}
+
+QRCode::ESTADO QRCode::getEstado() const
+{
+    return estado;
+}
+
+void QRCode::setEstado(const ESTADO &value)
+{
+    estado = value;
+}
+
+float QRCode::getDistanceToTarget() const
+{
+    return distanceToTarget;
+}
+
+void QRCode::setDistanceToTarget(float value)
+{
+    distanceToTarget = value;
 }

@@ -92,8 +92,9 @@ private:
     void decreaseVideosVolumeVinculados();
 
     //
-    void drawLinesBeetweenMarkers(Mat &frame, QVector<Jugador *> *vp, vector<Scalar> vsc, int thickness = 3);
+    void drawLinesBeetweenMarkers(Mat &frame, QVector<Jugador *> *vp, int thickness = 3);
     void drawShortestLineToTarget(Mat &frame, Point target, int thickness = 3);
+    void drawPosibleTriangulation(Mat &frame, QVector<Jugador *> *vp, int thickness);
 
     enum DISTANCE {MODULE, AXIS_X, AXIS_Y};
     void calcShortestDistance(vector<Point> &cp, Point target, Point &nearestp, float &mdist, DISTANCE type = MODULE);
@@ -101,9 +102,10 @@ private:
     int pnpoly(int nvert, QVector<float> *vertx, QVector<float> *verty, float testx, float testy);
     bool markerInPolygon(QRCode *qrc, Jugador *jug);
     void killOutOfZoneMarkers(QVector<Jugador *> *vp, int zone);
-    void determineDeadPlayers(QVector<Jugador *> *vp);
-    void drawGameLines(Mat &frame);
-
+    void determineDeadPlayers(QVector<Jugador *> *vp, int winnerLine, int zonaTriangulacion);
+    void drawGameLines(Mat &frame, int winnerLine, int zonaTriangulacion);
+    bool isInZone(Jugador *j, int maxPos, int minPos);
+    void determineWhoCanTriangulate(QVector<Jugador *> *vp, int winnerLine, int zonaTriangulacion);
 
     void initJugadores(QVector<Jugador *> *vp, QVector<Marker> &dm);
     void clearJugadores(QVector<Jugador *> *vp);

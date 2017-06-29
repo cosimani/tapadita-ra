@@ -61,6 +61,9 @@ void Principal::initPrincipal()
     QString deadMarkerPath("/home/jrjs/proyectos-qt/tapadita-ra/images/calavera5.png");
     ui->scene->addTexture(deadMarkerPath);
 
+    QString triangulacionMarkerPath("/home/jrjs/proyectos-qt/tapadita-ra/images/tri-verde-agua.png");
+    ui->scene->addTexture(triangulacionMarkerPath);
+
     // cuando se llama a este metodo, comienza a estar visible esta clase
     ui->scene->getSceneTimer()->start(10);
 }
