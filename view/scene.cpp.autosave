@@ -809,6 +809,7 @@ void Scene::process( Mat &frame )
         }
     }
 
+    
     // primero los que estan afuera de TODO los elimino
     killOutOfZoneMarkers(vp, zonaTriangulacion);
     // luego determino quien puede triangular y dibujo la triangulacion

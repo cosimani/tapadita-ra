@@ -11,6 +11,7 @@
 
 #include <QDir>
 #include <QFile>
+#include <QPoint>
 #include <QTimer>
 #include <QVector>
 #include <QSlider>
@@ -91,11 +92,23 @@ private:
     void decreaseVideosVolumeVinculados();
 
     //
-    void drawLinesBeetweenMarkers(Mat &frame, vector<Scalar> vsc, int thickness = 3);
-    void drawShortestLineToReference(Mat &frame, Point target, int thickness = 3);
+    void drawLinesBeetweenMarkers(Mat &frame, QVector<Jugador *> *vp, int thickness = 3);
+    void drawShortestLineToTarget(Mat &frame, Point target, int thickness = 3);
+    void drawPosibleTriangulation(Mat &frame, QVector<Jugador *> *vp, int thickness);
 
-    void calcShortestDistance(vector<Point> &cp, Point target, Point &nearestp, float &mdist);
-    void distanceFromPoints();
+    enum DISTANCE {MODULE, AXIS_X, AXIS_Y};
+    void calcShortestDistance(vector<Point> &cp, Point target, Point &nearestp, float &mdist, DISTANCE type = MODULE);
+    void drawShortestDistance(Mat &frame, QVector<Jugador *> *vp, QVector<Marker> mkrs, Point target, DISTANCE type = MODULE, int thickness = 3);
+    int pnpoly(int nvert, QVector<float> *vertx, QVector<float> *verty, float testx, float testy);
+    bool markerInPolygon(QRCode *qrc, Jugador *jug);
+    void killOutOfZoneMarkers(QVector<Jugador *> *vp, int zone);
+    void determineDeadPlayers(QVector<Jugador *> *vp, int winnerLine, int zonaTriangulacion);
+    void drawGameLines(Mat &frame, int winnerLine, int zonaTriangulacion);
+    bool isInZone(Jugador *j, int maxPos, int minPos);
+    void determineWhoCanTriangulate(QVector<Jugador *> *vp, int winnerLine, int zonaTriangulacion);
+
+    void initJugadores(QVector<Jugador *> *vp, QVector<Marker> &dm);
+    void clearJugadores(QVector<Jugador *> *vp);
 
 public:
     Scene( QWidget *parent = 0 );
