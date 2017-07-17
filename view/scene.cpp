@@ -5,9 +5,10 @@
 
 
 /* Junior del futuro:
- * Branch: tapadita-game
  *
  * TODO:
+ * 1- crear un nuevo widget que reemplace a principal.
+ * 2- mejorar como se ve registerplayer
  */
 
 Scene::Scene( QWidget *parent ) : QGLWidget( parent ),
@@ -944,7 +945,6 @@ bool Scene::isInZone(Jugador * j, int maxPos, int minPos)
     }
     return false;
 }
-
 
 /**
  * @brief Scene::determineWhoCanTriangulate determina y setea en estado triangulation.

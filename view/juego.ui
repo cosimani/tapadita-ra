@@ -1,41 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ViewController</class>
- <widget class="QWidget" name="ViewController">
+ <class>Juego</class>
+ <widget class="QWidget" name="Juego">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>607</width>
+    <width>400</width>
     <height>300</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <property name="styleSheet">
-   <string notr="true">background: rgb(89, 89, 89)</string>
-  </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
-    <widget class="Inicio" name="inicio" native="true"/>
+    <widget class="Scene" name="scene" native="true"/>
    </item>
    <item row="0" column="1">
-    <widget class="Principal" name="principal" native="true"/>
+    <widget class="QGroupBox" name="gbGameStatus">
+     <property name="title">
+      <string>GroupBox</string>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>
  <customwidgets>
   <customwidget>
-   <class>Inicio</class>
+   <class>Scene</class>
    <extends>QWidget</extends>
-   <header>view/inicio.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>Principal</class>
-   <extends>QWidget</extends>
-   <header>view/principal.h</header>
+   <header>view/scene.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

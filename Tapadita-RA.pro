@@ -134,7 +134,8 @@ SOURCES += main.cpp\
     factory.cpp \
     controller/cvdrawing.cpp \
     model/jugador.cpp \
-    model/qrcode.cpp
+    model/qrcode.cpp \
+    view/juego.cpp
 
 HEADERS += controller/model.h \
            view/scene.h \
@@ -166,7 +167,8 @@ HEADERS += controller/model.h \
     factory.h \
     controller/cvdrawing.h \
     model/jugador.h \
-    model/qrcode.h
+    model/qrcode.h \
+    view/juego.h
 
 FORMS += \
     view/viewcontroller.ui \
@@ -174,7 +176,8 @@ FORMS += \
     view/profilepicture.ui \
     view/micampotexto.ui \
     view/inicio.ui \
-    view/principal.ui
+    view/principal.ui \
+    view/juego.ui
 
 DISTFILES += \
     README.md \
