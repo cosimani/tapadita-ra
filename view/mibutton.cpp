@@ -4,6 +4,7 @@
 
 MiButton::MiButton(QWidget *parent): QPushButton(parent)
 {
+    this->setStyleSheet("QPushButton { background-color: grey }");
 }
 
 
