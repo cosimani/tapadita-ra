@@ -13,7 +13,7 @@ ViewController::ViewController(QWidget *parent) :
     this->initDefaultValues();
     this->initDataBase();
     Database::getInstance()->getNumberOfRows("vinculos");
-    connect(ui->inicio, SIGNAL(sig_start(QMap<QString, QString>)), this, SLOT(slot_showPrincipal(QMap<QString, QString>)));
+    connect(ui->inicio, SIGNAL(sig_start()), this, SLOT(slot_showPrincipal()));
 }
 
 ViewController::~ViewController()
@@ -40,34 +40,16 @@ void ViewController::initDataBase()
         qDebug() << "ERROR: No se pudo conectar con la base de datos";
         this->close();
     }
-
-    // si ya se cargaron los marcadores, no los vuelvo a cargar
-    int filas = Database::getInstance()->getNumberOfRows("vinculos");
-    if (! (filas == CANTIDAD_MARCADORES) ) {
-    qDebug() << "cargar markers";
-    // aca tengo que cargar los datos de los marcadores
-        for(int i = 0; i < 0; i++){
-            QStringList values;
-            values.append(QString::number(i));
-            values.append("null");
-            values.append("null");
-            values.append("null");
-            if(!Database::getInstance()->insert_into("vinculos", values)){
-                qDebug() << "void ViewController::initDataBase(): No se pudo insertar en tabla vinculos";
-            }
-        }
-    }
 }
 
 
 
-void ViewController::slot_showPrincipal(QMap<QString, QString> fichas_jugadores)
+void ViewController::slot_showPrincipal()
 {
     qDebug() << "slot_showPrincipal: se oculta register y muestra principal";
     ui->inicio->setVisible(false);
     ui->principal->setVisible(true);
-    ui->principal->setFichas_jugadores(fichas_jugadores);
 
     // inicializo el timer de scene aca, porque sino esta visible y se intenta actualizar la esena rompe
-    ui->principal->startTimer();
+    ui->principal->initPrincipal();
 }

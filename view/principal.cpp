@@ -4,12 +4,8 @@
 #include <QCameraInfo>
 #include <QMessageBox>
 #include "view/viewcontroller.h"
-#include "controller/jugador.h"
+#include "model/jugador.h"
 
-/* TODO:
- * tomar los valores del mapa cuando ya esta seteado
- * y buscar en la bd los datos de cada marcador y jugador.
- */
 
 Principal::Principal(QWidget *parent) :
     QWidget(parent),
@@ -28,9 +24,6 @@ Principal::Principal(QWidget *parent) :
     connect(ui->pbVincular, SIGNAL(clicked(bool)), this, SLOT(slot_vincular()));
     connect(this, SIGNAL(signal_vincular(int,QString,QString)), ui->scene, SLOT(slot_vincular(int,QString,QString)));
 
-//    connect(v , SIGNAL(sig_principalVisible()), this, SLOT(slot_principalVisible()));
-
-    qDebug() << "princial visible?:" << this->isVisible();
 
     this->cargarCamaras();
 }
@@ -49,48 +42,30 @@ void Principal::setVisibleSliders(bool visible)  {
 }
 
 
-void Principal::startTimer()
-{
-    // cuando se llama a este metodo, comienza a estar visible esta clase
-    ui->scene->getSceneTimer()->start(10);
-}
-
-/**
- * @brief Principal::setFichas_jugadores setea un Map con
- * key:nro_jugador y su value y otra key:marker_id y su value
- *
- * @param fichas_jugadores recibe el Mapa cargado desde ViewController
- * recien cuando esta visible la clase principal.
- */
-void Principal::setFichas_jugadores(QMap<QString, QString> fichas_jugadores)
-{
-    // pruebo poner para que detecte los marcadores
-    // y en la clase scene tengo que poner que
-    // dibuja una imagen llame al metodo drawsheet (algo asi)
-    // con una imagen por defecto que le paso
-    ui->cbMostrarId->setChecked(true);
-    this->fichas_jugadores = fichas_jugadores;
-
-    // por defecto dejo esta cargada
-    ui->scene->addTexture("/home/jrjs/proyectos-qt/closed_hand.png");
-
+void Principal::initPrincipal()
+{ 
     QVector<Jugador*> *vp = Jugador::getJugadoresActuales();
     for( int i = 0; i < vp->size(); i++){
         ui->scene->addTexture(vp->at(i)->getFoto_perfil());
-        qDebug() << "foto:" << vp->at(i)->getFoto_perfil();
-        qDebug() << "nombre:" << vp->at(i)->getNombre();
+//        qDebug() << "foto:" << vp->at(i)->getFoto_perfil();
+//        qDebug() << "nombre:" << vp->at(i)->getNombre();
     }
 
-    //prueba, agrego la textura de una imagen al comienzo
-//    addTexture("");
-//    addTexture("../boca.png");
+    /* agrego la imagen del marker especial a mano, pero deberia
+       consultar en la bd todos los especiales (podrian ser los
+       que no tienen recurso de la tabla vinculos en null).
+    */
+    QString targetPath("/home/jrjs/obj.png");
+    ui->scene->addTexture(targetPath);
 
-}
+    QString deadMarkerPath("/home/jrjs/proyectos-qt/tapadita-ra/images/calavera5.png");
+    ui->scene->addTexture(deadMarkerPath);
 
+    QString triangulacionMarkerPath("/home/jrjs/proyectos-qt/tapadita-ra/images/tri-verde-agua.png");
+    ui->scene->addTexture(triangulacionMarkerPath);
 
-QMap<QString, QString> Principal::getFichas_jugadores() const
-{
-    return fichas_jugadores;
+    // cuando se llama a este metodo, comienza a estar visible esta clase
+    ui->scene->getSceneTimer()->start(10);
 }
 
 /**

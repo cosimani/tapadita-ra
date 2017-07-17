@@ -7,14 +7,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
+
 #include <QDir>
 #include <QFile>
+#include <QPoint>
 #include <QTimer>
 #include <QVector>
+#include <QSlider>
 #include <QGLWidget>
+#include <QFileInfo>
 #include <QKeyEvent>
 #include <QMouseEvent>
+#include <QMessageBox>
 #include <QGLFunctions>
+
 
 #include <opencv/highgui.h>
 #include <opencv2/opencv.hpp>
@@ -24,13 +31,17 @@
 
 #include <aruco/aruco.h>
 
-#include "texture.h"
-#include "model.h"
+#include "common.h"
+
+#include "controller/model.h"
 #include "video.h"
-
-#include <QSlider>
-
+#include "controller/texture.h"
+#include "model/database.hpp"
 #include "view/principal.h"
+#include "model/jugador.h"
+#include "controller/cvdrawing.h"
+
+
 
 using namespace cv;
 using namespace std;
@@ -79,6 +90,25 @@ private:
     void drawVideoVinculado( QString videoName, float sizeMarker, unsigned int percentage = 100, int volume = 100 );
     void decreaseVideosVolume();
     void decreaseVideosVolumeVinculados();
+
+    //
+    void drawLinesBeetweenMarkers(Mat &frame, QVector<Jugador *> *vp, int thickness = 3);
+    void drawShortestLineToTarget(Mat &frame, Point target, int thickness = 3);
+    void drawPosibleTriangulation(Mat &frame, QVector<Jugador *> *vp, int thickness);
+
+    enum DISTANCE {MODULE, AXIS_X, AXIS_Y};
+    void calcShortestDistance(vector<Point> &cp, Point target, Point &nearestp, float &mdist, DISTANCE type = MODULE);
+    void drawShortestDistance(Mat &frame, QVector<Jugador *> *vp, QVector<Marker> mkrs, Point target, DISTANCE type = MODULE, int thickness = 3);
+    int pnpoly(int nvert, QVector<float> *vertx, QVector<float> *verty, float testx, float testy);
+    bool markerInPolygon(QRCode *qrc, Jugador *jug);
+    void killOutOfZoneMarkers(QVector<Jugador *> *vp, int zone);
+    void determineDeadPlayers(QVector<Jugador *> *vp, int winnerLine, int zonaTriangulacion);
+    void drawGameLines(Mat &frame, int winnerLine, int zonaTriangulacion);
+    bool isInZone(Jugador *j, int maxPos, int minPos);
+    void determineWhoCanTriangulate(QVector<Jugador *> *vp, int winnerLine, int zonaTriangulacion);
+
+    void initJugadores(QVector<Jugador *> *vp, QVector<Marker> &dm);
+    void clearJugadores(QVector<Jugador *> *vp);
 
 public:
     Scene( QWidget *parent = 0 );

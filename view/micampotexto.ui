@@ -13,6 +13,17 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">QLabel{
+	font: 12pt &quot;Ume Gothic O5&quot;;
+    color:rgb(182, 200, 177)
+}
+
+QLineEdit{
+	font: 12pt &quot;Ume Gothic O5&quot;;
+    color:rgb(167, 230, 167)
+}</string>
+  </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
     <widget class="QLabel" name="label">

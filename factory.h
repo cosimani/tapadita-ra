@@ -1,7 +1,7 @@
 #ifndef FACTORY_H
 #define FACTORY_H
 
-#include "controller/jugador.h"
+#include "model/jugador.h"
 
 class Factory
 {

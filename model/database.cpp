@@ -6,11 +6,6 @@
 #include <QMap>
 #include "common.h"
 
-/* TODO: hacer que al comenzar se inserten los marcadores
- * con otro metodo que no sea el ejecutar consulta, porque
- * abre y cierra la conexion con la base de datos y consume
- * muchos recursos.
-*/
 
 Database *Database::instance = NULL;
 
@@ -66,7 +61,6 @@ int Database::checkBase()
         {
             bool qv = createTableVinculos();
             bool qj = createTableJugadores();
-//            bool qf = createTableFichas();
 
             this->disconnectDatabase();
 
@@ -155,19 +149,6 @@ bool Database::createTableJugadores()
                          "    nro_jugador    integer         primary key AUTOINCREMENT,  "
                          "    nom_jugador    varchar(100)    not null,                   "
                          "    foto_perfil    varchar(200)    not null                    "
-                         ")" );
-    return Database::getInstance()->ejecutarConsulta(queryString);
-}
-
-bool Database::createTableFichas()
-{
-    QString queryString( "create table fichas_jugador                                          "
-                         "(                                                                    "
-                         "    marker_id      integer         not null,                         "
-                         "    nro_jugador    integer         not null,                         "
-                         "    PRIMARY KEY(marker_id, nro_jugador),                             "
-                         "    FOREIGN KEY(marker_id)   REFERENCES vinculos(marker_id),         "
-                         "    FOREIGN KEY(nro_jugador) REFERENCES jugadores(nro_jugador)       "
                          ")" );
     return Database::getInstance()->ejecutarConsulta(queryString);
 }
