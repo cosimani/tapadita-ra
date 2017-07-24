@@ -16,12 +16,13 @@
   <property name="styleSheet">
    <string notr="true">QLabel#ltitle{
 	font: 32pt &quot;Ume P Gothic C5&quot;;
-	color:rgb(90, 122, 171)
+	color:rgb(0, 85, 255)
 }
 
 QPushButton#pbstart{
-	font: 10pt &quot;Ume Gothic C5&quot;;
+	font: 12pt &quot;Ume Gothic C5&quot;;
     color:rgb(0, 85, 127);
+	min-width:100px
 }</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">

@@ -2,6 +2,7 @@
 #define JUEGO_H
 
 #include <QWidget>
+#include "view/puntaje.h"
 
 namespace Ui {
 class Juego;
@@ -15,10 +16,18 @@ public:
     explicit Juego(QWidget *parent = 0);
     ~Juego();
 
-    void initJuego();
-
-private:
     Ui::Juego *ui;
+    QVector<Puntaje *> puntajes;
+
+    void initJuego();
+    void cargarCamaras();
+
+
+    QVector<Puntaje *> getPuntajes() const;
+    void setPuntajes(const QVector<Puntaje *> &value);
+
+private slots:
+    void slot_cbCamarasChanged(int nuevoIndex);
 };
 
 #endif // JUEGO_H
