@@ -15,13 +15,37 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
-    <widget class="Scene" name="scene" native="true"/>
+    <widget class="Scene" name="scene" native="true">
+     <zorder>gbGameStatus</zorder>
+     <zorder>gbGameStatus</zorder>
+    </widget>
    </item>
    <item row="0" column="1">
     <widget class="QGroupBox" name="gbGameStatus">
      <property name="title">
-      <string>GroupBox</string>
+      <string>Estado del juego</string>
      </property>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="0" column="0">
+       <widget class="Puntaje" name="puntaje1" native="true"/>
+      </item>
+      <item row="1" column="0">
+       <widget class="Puntaje" name="puntaje2" native="true"/>
+      </item>
+      <item row="2" column="0">
+       <spacer name="verticalSpacer">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>206</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
     </widget>
    </item>
   </layout>
@@ -31,6 +55,12 @@
    <class>Scene</class>
    <extends>QWidget</extends>
    <header>view/scene.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>Puntaje</class>
+   <extends>QWidget</extends>
+   <header>view/puntaje.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

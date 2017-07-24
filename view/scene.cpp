@@ -7,8 +7,23 @@
 /* Junior del futuro:
  *
  * TODO:
- * 1- crear un nuevo widget que reemplace a principal.
- * 2- mejorar como se ve registerplayer
+ *
+ * BUGS:
+ *
+ * - cuando el marker esta a la misma altura que la linea
+ *   donde pasa a estar muerto, ahi el marker queda en estado
+ *   valid cuando deberia ser dead o triangulacion.
+ *
+ *   status: resuelto. => solo tenia que poner <= en el metodo donde mata a los markers
+ *
+ * - cuando un marker esta a la misma altura que la linea winnerLine
+ *   el puntaje se muestra como un valor residual.
+ *
+ *   status: resuelto => cambie en el metodo whocantriangulate que ahora esta en zona
+ *   triangulacion si el centro del marker esta incluido en ambos extremos [].
+ *
+ *
+ *   stylesheet viewcontroller: background: rgb(89, 89, 89)
  */
 
 Scene::Scene( QWidget *parent ) : QGLWidget( parent ),
@@ -30,7 +45,7 @@ Scene::Scene( QWidget *parent ) : QGLWidget( parent ),
 
                                   zRotationVelocity( 0 ),
 
-                                  principal ( (Principal*) parent )
+                                  juego ( (Juego*) parent )
 {
 
     videoCapture = new cv::VideoCapture();
@@ -343,7 +358,8 @@ void Scene::paintGL()
      * si entre los markers detectados, el marker corresponde a ese jugador
      * en caso de ser cierto, dibujo la imagen de ese jugador
     */
-    float coefTamano = (float)principal->ui->sbTamano->value() / (float)100;
+//    float coefTamano = (float)principal->ui->sbTamano->value() / (float)100;
+    float coefTamano = 1;
     QVector<Jugador*> * vp = Jugador::getJugadoresActuales();
     for(int i = 0; i < vp->size(); i++){
 
@@ -364,6 +380,7 @@ void Scene::paintGL()
             // id del marcador encontrado y dibujo su foto si esta esa relacion.
             if( jug->getVecids()->indexOf(mi) != -1) {
 
+
                 // tengo que ver a quien pertenece el id en mi y ver si esta visible el marker
 
                 for(int k = 0; k < jug->getFichas()->size(); k++){
@@ -373,15 +390,18 @@ void Scene::paintGL()
 
                         switch (qrc->getEstado()) {
                         case QRCode::ESTADO::valid:
-                            drawSheet(fp, detectedMarkers.at( j ).ssize, 100 * coefTamano);
+                            drawBox(fp, detectedMarkers.at( j ).ssize, 100 * coefTamano);
+                            qrc->updatePuntaje(100);
                             break;
 
                         case QRCode::ESTADO::dead:
-                            drawSheet("/home/jrjs/proyectos-qt/tapadita-ra/images/calavera5.png", detectedMarkers.at( j ).ssize, 100 * coefTamano);
+                            drawBox(jug->getFoto_muerte(), detectedMarkers.at( j ).ssize, 100 * coefTamano);
+                            qrc->updatePuntaje(-50);
                             break;
 
                         case QRCode::ESTADO::triangulation:
-                            drawSheet("/home/jrjs/proyectos-qt/tapadita-ra/images/tri-verde-agua.png", detectedMarkers.at( j ).ssize, 100 * coefTamano);
+                            drawBox(jug->getFoto_triangulacion(), detectedMarkers.at( j ).ssize, 100 * coefTamano);
+                            qrc->updatePuntaje(0);
                             break;
 
                         default:
@@ -390,13 +410,11 @@ void Scene::paintGL()
                     }
                 }
             }
-            //-------------------Fin: dibujo imagen en marker ----------------------
 
-            // si detecto el marker especial
-            if( mi == 108 ){
-                drawSheet("/home/jrjs/obj.png", detectedMarkers.at( j ).ssize, 100 * coefTamano);
-            }
+            //-------------------Fin: dibujo imagen en marker ----------------------
         }
+
+        jug->updatePuntaje();
     }
 
     // Fin: Gráfico en marcadores
@@ -408,13 +426,13 @@ void Scene::keyPressEvent( QKeyEvent *event )
 {
     switch( event->key() )  {
     case Qt::Key_M:
-        if ( principal->isFullScreen() )  {
-            principal->showMaximized();
-            principal->setVisibleSliders(true);
+        if ( juego->isFullScreen() )  {
+            juego->showMaximized();
+//            juego->setVisibleSliders(true);
         }
         else  {
-            principal->showFullScreen();;
-            principal->setVisibleSliders(false);
+            juego->showFullScreen();;
+//            juego->setVisibleSliders(false);
         }
         break;
 
@@ -786,10 +804,8 @@ void Scene::process( Mat &frame )
     detectedMarkers = QVector< Marker >::fromStdVector( detectedMarkersVector );
 
     // descripcion del marker
-    if ( principal->ui->cbMostrarId->isChecked() ) {
-        for( int i = 0; i < detectedMarkers.size(); i++ )
-            detectedMarkers.at( i ).draw( frame, Scalar( 255, 0, 255 ), 1 );
-    }
+//    for( int i = 0; i < detectedMarkers.size(); i++ )
+//        detectedMarkers.at( i ).draw( frame, Scalar( 255, 0, 255 ), 1 );
 
     QVector<Jugador*> * vp = Jugador::getJugadoresActuales();
 
@@ -810,6 +826,8 @@ void Scene::process( Mat &frame )
         }
     }
 
+    setDistancesToWinnerLine(vp, winnerLine);
+
     // primero los que estan afuera de TODO los elimino
     killOutOfZoneMarkers(vp, zonaTriangulacion);
     // luego determino quien puede triangular y dibujo la triangulacion
@@ -817,8 +835,32 @@ void Scene::process( Mat &frame )
     drawPosibleTriangulation(frame, vp, 3);
     // finalmente, veo quienes quedaron encerrados en una triangulacion y los mato
     determineDeadPlayers(vp, winnerLine, zonaTriangulacion);
+
 }
 
+/**
+ * @brief Scene::setDistancesToWinnerLine seteo todas las distancias a la winnerLine
+ * de cada marker.
+ * @param vp vector de jugadores a analizar.
+ * @param winnerLine linea objetivo del juego.
+ */
+void Scene::setDistancesToWinnerLine(QVector<Jugador *> *vp, int winnerLine)
+{
+    Point targetY( 0, winnerLine ), nearest;
+    float mdist = -1;
+    vector<Point> cp;
+    for(int i = 0; i < vp->size(); i++) {
+        Jugador * j = vp->at(i);
+        for(int k = 0; k < j->getFichas()->size(); k++) {
+            QRCode * qrc = j->getFichas()->at(k);
+            Point p( qrc->getCordX(), qrc->getCordY() );
+            cp.push_back(p);
+            calcShortestDistance( cp, targetY, nearest, mdist, DISTANCE::AXIS_Y );
+            qrc->setDistanceToTarget(mdist);
+            cp.clear();
+        }
+    }
+}
 
 /**
  * @brief Scene::killOutOfZoneMarkers pongo como no visibles, las fichas
@@ -833,7 +875,7 @@ void Scene::killOutOfZoneMarkers(QVector<Jugador *> *vp, int zone)
 
         for(int k = 0; k < j->getFichas()->size(); k++){
             QRCode * qrc = j->getFichas()->at(k);
-            if( qrc->getCordY() < zone ) {
+            if( qrc->getCordY() <= zone ) {
                 qrc->setVisible(false);
                 qrc->setEstado(QRCode::ESTADO::dead);
             }
@@ -926,7 +968,7 @@ void Scene::drawGameLines(Mat &frame, int winnerLine, int zonaTriangulacion)
     // zona de triangulacion
     cv::line(frame, Point(0,zonaTriangulacion), Point(640, zonaTriangulacion), Scalar(20,117,255), 2);
     // zona 1000 puntos
-    cv::line(frame, Point(0,zona1), Point(640, zona1), Scalar(0,255,0), 2);
+//    cv::line(frame, Point(0,zona1), Point(640, zona1), Scalar(0,255,0), 2);
 }
 
 /**
@@ -972,7 +1014,7 @@ void Scene::determineWhoCanTriangulate(QVector<Jugador *> *vp, int winnerLine, i
             QRCode * qrc = j->getFichas()->at(k);
             Point p( qrc->getCordX(), qrc->getCordY() );
 
-            if ( qrc->getCordY() > zonaTriangulacion && qrc->getCordY() < winnerLine ) {
+            if ( qrc->getCordY() >= zonaTriangulacion && qrc->getCordY() <= winnerLine ) {
                 qrc->setEstado(QRCode::ESTADO::dead);
                 cp.push_back(p);
                 exists = true;

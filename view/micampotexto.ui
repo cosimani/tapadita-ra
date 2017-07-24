@@ -20,8 +20,8 @@
 }
 
 QLineEdit{
-	font: 12pt &quot;Ume Gothic O5&quot;;
-    color:rgb(167, 230, 167)
+	font: 12pt &quot;WenQuanYi Micro Hei Mono&quot;;
+    color:rgb(182, 200, 177)
 }</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">

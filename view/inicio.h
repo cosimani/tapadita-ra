@@ -7,6 +7,10 @@
 #include "model/database.hpp"
 #include "factory.h"
 #include "model/jugador.h"
+#include "view/viewcontroller.h"
+#include "view/juego.h"
+#include <QDebug>
+#include <QColor>
 
 namespace Ui {
 class Inicio;
@@ -17,10 +21,13 @@ class Inicio : public QWidget
     Q_OBJECT
 
     QVector<Jugador *> jugadoresActuales;
+    Ui::Inicio *ui;
 
 public:
     explicit Inicio(QWidget *parent = 0);
     ~Inicio();
+
+    ViewController * vc;
 
     /**
      * @brief se llama al crearse el objeto, para setear valores a las imagenes, label, y buton por defecto
@@ -50,8 +57,7 @@ public:
     QVector<Jugador *> getJugadoresActuales() const;
     void setJugadoresActuales(const QVector<Jugador *> &value);
 
-private:
-    Ui::Inicio *ui;
+
 
 private slots:
     void slot_start(bool push);

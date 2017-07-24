@@ -1,6 +1,6 @@
 #---------------------------------
 #
-# Proyecto Tapadita -version-tejo-
+# Proyecto Tapadita
 #
 #---------------------------------
 
@@ -135,7 +135,8 @@ SOURCES += main.cpp\
     controller/cvdrawing.cpp \
     model/jugador.cpp \
     model/qrcode.cpp \
-    view/juego.cpp
+    view/juego.cpp \
+    view/puntaje.cpp
 
 HEADERS += controller/model.h \
            view/scene.h \
@@ -168,7 +169,8 @@ HEADERS += controller/model.h \
     controller/cvdrawing.h \
     model/jugador.h \
     model/qrcode.h \
-    view/juego.h
+    view/juego.h \
+    view/puntaje.h
 
 FORMS += \
     view/viewcontroller.ui \
@@ -177,7 +179,8 @@ FORMS += \
     view/micampotexto.ui \
     view/inicio.ui \
     view/principal.ui \
-    view/juego.ui
+    view/juego.ui \
+    view/puntaje.ui
 
 DISTFILES += \
     README.md \
@@ -185,3 +188,6 @@ DISTFILES += \
     Files/CameraParameters.yml \
     images/empty_profile.jpg \
     images/empty_profile2.jpg \
+    images/calavera5.png \
+    images/tri-verde-agua.png \
+    images/tri-amarillo.png

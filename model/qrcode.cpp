@@ -4,7 +4,8 @@ QRCode::QRCode():
     cordX(0),
     cordY(0),
     visible(false),
-    distanceToTarget(-1)
+    distanceToTarget(-1),
+    puntaje(-1)
 {
     
 }
@@ -27,6 +28,15 @@ QRCode *QRCode::createQRC()
     return createQRC(m, -1, -1, false);
 }
 
+// seteo el puntaje segun su distancia al target y
+void QRCode::updatePuntaje(int puntaje)
+{
+    if( this->estado != ESTADO::triangulation ){
+        setPuntaje( (float)puntaje / (float)( getDistanceToTarget() / 1000 ) );
+    }
+    else
+        setPuntaje(0);
+}
 
 //------------------------------Getters And Setters---------------------------------
 
@@ -88,4 +98,14 @@ float QRCode::getDistanceToTarget() const
 void QRCode::setDistanceToTarget(float value)
 {
     distanceToTarget = value;
+}
+
+int QRCode::getPuntaje() const
+{
+    return puntaje;
+}
+
+void QRCode::setPuntaje(int value)
+{
+    puntaje = value;
 }

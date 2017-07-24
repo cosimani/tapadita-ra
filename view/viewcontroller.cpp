@@ -25,15 +25,10 @@ ViewController::~ViewController()
 void ViewController::initDefaultValues()
 {
     ui->inicio->setVisible(true);
-    ui->principal->setVisible(false);
+    ui->juego->setVisible(false);
 }
 
-// estaria bueno hacer un factory que inicie la base de datos
-// nota: demora bastante en insertar en la base de datos al comienzo,
-// habria que hacerlo luego de que se creen las vistas, para que no
-// se interrumpa O sino hacerlo en otro hilo con QThread
 
-// creo que mas facil seria insertar los marcadores que uso y listo.
 void ViewController::initDataBase()
 {
     if (!Database::getInstance()->checkBase() == -1){
@@ -43,13 +38,14 @@ void ViewController::initDataBase()
 }
 
 
-
 void ViewController::slot_showPrincipal()
 {
     qDebug() << "slot_showPrincipal: se oculta register y muestra principal";
+
     ui->inicio->setVisible(false);
-    ui->principal->setVisible(true);
+    ui->juego->setVisible(true);
 
     // inicializo el timer de scene aca, porque sino esta visible y se intenta actualizar la esena rompe
-    ui->principal->initPrincipal();
+    ui->juego->initJuego();
 }
+
