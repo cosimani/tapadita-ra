@@ -37,7 +37,7 @@
 #include "video.h"
 #include "controller/texture.h"
 #include "model/database.hpp"
-#include "view/principal.h"
+#include "view/juego.h"
 #include "model/jugador.h"
 #include "controller/cvdrawing.h"
 
@@ -69,7 +69,7 @@ private:
 
     QVector<QStringList> imageFiles;
 
-    Principal * principal;
+    Juego * juego;
 
     void loadTextures();
     void loadModels();
@@ -106,6 +106,7 @@ private:
     void drawGameLines(Mat &frame, int winnerLine, int zonaTriangulacion);
     bool isInZone(Jugador *j, int maxPos, int minPos);
     void determineWhoCanTriangulate(QVector<Jugador *> *vp, int winnerLine, int zonaTriangulacion);
+    void setDistancesToWinnerLine(QVector<Jugador *> *vp, int winnerLine);
 
     void initJugadores(QVector<Jugador *> *vp, QVector<Marker> &dm);
     void clearJugadores(QVector<Jugador *> *vp);

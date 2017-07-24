@@ -1,13 +1,12 @@
 #include "inicio.h"
 #include "ui_inicio.h"
-
-#include <QDebug>
-#include <QColor>
+#include "ui_viewcontroller.h"
 
 
 Inicio::Inicio(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::Inicio)
+    ui(new Ui::Inicio),
+    vc( (ViewController*) parent )
 {
     ui->setupUi(this);
 
@@ -64,6 +63,10 @@ bool Inicio::registrarJugadores(){
  */
 bool Inicio::insertPlayersInDB()
 {
+    QStringList fm {"/home/jrjs/proyectos-qt/tapadita-ra/images/calavera5.png", "/home/jrjs/proyectos-qt/tapadita-ra/images/calavera10.png"};
+    QStringList ft {"/home/jrjs/proyectos-qt/tapadita-ra/images/tri-verde-agua.png", "/home/jrjs/proyectos-qt/tapadita-ra/images/tri-amarillo.png"};
+
+    int j = 0;
     QMap <QString, QString> players;
     for(int i = 0; i < ui->gridLayout->count();i++){
         RegisterPlayer * rp = qobject_cast<RegisterPlayer *>(ui->gridLayout->itemAt(i)->widget());
@@ -93,12 +96,19 @@ bool Inicio::insertPlayersInDB()
             Jugador * jug = Factory::getJugador();
             jug->setFoto_perfil(fp);
             jug->setNombre(nom);
+            jug->setFoto_muerte(fm.at(j));
+            jug->setFoto_triangulacion(ft.at(j));
             // consultar el id del jugador y setearselo
             int nro_jug = Database::getInstance()->getLastRow("jugadores", "nro_jugador");
 //            qDebug() << "ultimo jug:" << nro_jug;
             jug->setNro_jugador(nro_jug);
 
+//            qDebug() << "size:" << vc->ui->juego->getPuntajes().size() << "vuelta:" << i;
+            jug->setPuntaje( vc->ui->juego->getPuntajes().at(j) );
+            vc->ui->juego->getPuntajes().at(j)->setPuntajeName( jug->getNombre() );
+
             Jugador::getJugadoresActuales()->append(jug);
+            j++;
         }
     }
 

@@ -18,8 +18,10 @@ public:
     explicit ViewController(QWidget *parent = 0);
     ~ViewController();
 
-private:
+
     Ui::ViewController *ui;
+
+private:
 
     /**
      * @brief se llama al crearse el objeto, para setear valores por defecto

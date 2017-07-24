@@ -3,6 +3,7 @@
 
 #include <QVector>
 #include <QPoint>
+#include <QDebug>
 #include "aruco/marker.h"
 
 using namespace aruco;
@@ -23,6 +24,9 @@ class QRCode
     // distancia a la linea
     float distanceToTarget;
 
+    // puntaje del qrcode segun la distancia al target.
+    int puntaje;
+
 public:
 
     enum ESTADO {valid, dead, triangulation};
@@ -33,6 +37,8 @@ public:
 
     static QRCode *createQRC(Marker mkr, float cordX = -1, float cordY = -1 , bool activo = false, ESTADO estado = ESTADO::valid);
     static QRCode *createQRC();
+
+    void updatePuntaje(int puntaje);
 
     bool getVisible() const;
     void setVisible(bool value);
@@ -46,6 +52,8 @@ public:
     void setEstado(const ESTADO &value);
     float getDistanceToTarget() const;
     void setDistanceToTarget(float value);
+    int getPuntaje() const;
+    void setPuntaje(int value);
 };
 
 #endif // QRCODE_H
