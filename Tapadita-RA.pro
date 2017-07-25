@@ -8,7 +8,7 @@ QT += core gui opengl network multimedia widgets sql
 
 TEMPLATE = app
 
-#DEFINES += OPENGL_ES
+DEFINES += OPENGL_ES
 
 DEFINES += NO_DEBUG_ARUCO
 

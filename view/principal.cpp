@@ -60,10 +60,10 @@ void Principal::initPrincipal()
     ui->scene->addTexture(targetPath);
 #endif
 
-    QString deadMarkerPath("/home/andres/proyectosQT/github/tapadita-ra/images/calavera5.png");
+    QString deadMarkerPath("../tapadita-ra/images/calavera5.png");
     ui->scene->addTexture(deadMarkerPath);
 
-    QString triangulacionMarkerPath("/home/andres/proyectosQT/github/tapadita-ra/images/tri-verde-agua.png");
+    QString triangulacionMarkerPath("../tapadita-ra/images/tri-verde-agua.png");
     ui->scene->addTexture(triangulacionMarkerPath);
 
     // cuando se llama a este metodo, comienza a estar visible esta clase

@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/calavera5.png</file>
+        <file>images/tri-verde-agua.png</file>
+        <file>images/empty_profile2.jpg</file>
+        <file>images/calavera10.png</file>
+        <file>images/tri-amarillo.png</file>
+    </qresource>
+</RCC>

@@ -63,8 +63,11 @@ bool Inicio::registrarJugadores(){
  */
 bool Inicio::insertPlayersInDB()
 {
-    QStringList fm {"/home/jrjs/proyectos-qt/tapadita-ra/images/calavera5.png", "/home/jrjs/proyectos-qt/tapadita-ra/images/calavera10.png"};
-    QStringList ft {"/home/jrjs/proyectos-qt/tapadita-ra/images/tri-verde-agua.png", "/home/jrjs/proyectos-qt/tapadita-ra/images/tri-amarillo.png"};
+//    QStringList fm {"/home/jrjs/proyectos-qt/tapadita-ra/images/calavera5.png", "/home/jrjs/proyectos-qt/tapadita-ra/images/calavera10.png"};
+//    QStringList ft {"/home/jrjs/proyectos-qt/tapadita-ra/images/tri-verde-agua.png", "/home/jrjs/proyectos-qt/tapadita-ra/images/tri-amarillo.png"};
+
+    QStringList fm {"../tapadita-ra/images/calavera5.png", "../tapadita-ra/images/calavera10.png"};
+    QStringList ft {"../tapadita-ra/images/tri-verde-agua.png", "../tapadita-ra/images/tri-amarillo.png"};
 
     int j = 0;
     QMap <QString, QString> players;

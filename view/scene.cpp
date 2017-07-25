@@ -491,8 +491,7 @@ void Scene::paintGL()
 
                         case QRCode::ESTADO::triangulation:
                             drawBox(jug->getFoto_triangulacion(), detectedMarkers.at( j ).ssize, 100 * coefTamano);
-                            qrc->updatePuntaje(0);
-                            drawSheet("/home/andres/proyectosQT/github/tapadita-ra/images/calavera5.png", detectedMarkers.at( j ).ssize, 100 * coefTamano);
+                            qrc->updatePuntaje(0);                            
                             break;
 
                         default:
@@ -601,13 +600,12 @@ void Scene::paintGL()
                                     drawSheet(fp, detectedMarkers.at( j ).ssize, 100 * coefTamano);
                                     break;
 
-                                case QRCode::ESTADO::dead:
-                                    qDebug()<< jug->getNombre();
-                                    drawSheet("../tapadita-ra/images/calavera5.png", detectedMarkers.at( j ).ssize, 100 * coefTamano);
+                                case QRCode::ESTADO::dead:                                    
+                                    drawSheet(jug->getFoto_muerte(), detectedMarkers.at( j ).ssize, 100 * coefTamano);
                                     break;
 
                                 case QRCode::ESTADO::triangulation:
-                                    drawSheet("../tapadita-ra/images/tri-verde-agua.png", detectedMarkers.at( j ).ssize, 100 * coefTamano);
+                                    drawSheet(jug->getFoto_triangulacion(), detectedMarkers.at( j ).ssize, 100 * coefTamano);
                                     break;
 
                                 default:
@@ -615,10 +613,7 @@ void Scene::paintGL()
                                 }
                             }
                         }
-                    }
-                    // Draw cube geometry
-//                    geometries->drawCubeGeometry( program );
-//                    geometries->drawSheetGeometry( program );
+                    }                    
                 }
             }
     }
@@ -744,8 +739,10 @@ void Scene::drawBox( QString textureName, float sizeMarker, unsigned int percent
 
     for( int i = 0; i < textures->size(); i++ )
     {
+        qDebug()<<"si " + textures->at( i )->name + " es = " + textureName;
         if( textures->at( i )->name == textureName )
         {
+            qDebug()<<"entro a pintar: " + textureName;
             glEnable( GL_TEXTURE_2D );
             glBindTexture( GL_TEXTURE_2D, textures->at( i )->id );
             glColor3f( 1, 1, 1 );
