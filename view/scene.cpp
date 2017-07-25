@@ -25,8 +25,13 @@
  *
  *   stylesheet viewcontroller: background: rgb(89, 89, 89)
  */
-
+#ifndef OPENGL_ES
 Scene::Scene( QWidget *parent ) : QGLWidget( parent ),
+#else
+Scene::Scene(QWidget *parent) : QOpenGLWidget(parent),
+
+#endif
+
                                   nCamera( 0 ),
 
                                   videoCapture ( new cv::VideoCapture( nCamera ) ),
@@ -76,7 +81,13 @@ Scene::Scene( QWidget *parent ) : QGLWidget( parent ),
     connect( sceneTimer, SIGNAL( timeout() ), SLOT( slot_updateScene() ) );
 
 //    Database::getInstance()->checkBase();
-
+#ifdef OPENGL_ES
+    x = y = 0;
+    z = 0;
+    angulo = 0;
+    vImageBuffer = new QVector< QOpenGLBuffer * >();
+    vImageTexture = new QVector< Texture_ES * >();
+#endif
 }
 
 Scene::~Scene()
@@ -131,35 +142,104 @@ void Scene::setSceneTimer(QTimer *value)
 
 void Scene::loadTextures()
 {
-#ifdef PORTABLE
-    QDir directory( "./Textures" );
+#ifdef OPENGL_ES
+    QDir directory( "../tapadita-ra/images" );
+
+        QStringList fileFilter;
+        fileFilter << "*.jpg" << "*.png" << "*.bmp" << "*.gif";
+        QStringList imageFiles = directory.entryList( fileFilter );        
+
+        for ( int i = 0; i < imageFiles.size(); i++ )
+        {
+            QOpenGLBuffer * imageBuffer = new QOpenGLBuffer( QOpenGLBuffer::VertexBuffer );
+
+            imageBuffer->create();
+
+            static const int coords[1][4][3] = { { { +1, -1, 0 }, { -1, -1, 0 }, { -1, 0, 0 }, { +1, 0, 0 } } };
+
+            QVector<GLfloat> vertData;
+            for (int i = 0; i < 1; ++i) {
+                for (int j = 0; j < 4; ++j) {
+                    // vertex position
+                    vertData.append( coords[i][j][0]);
+                    vertData.append( coords[i][j][1]);
+                    vertData.append( coords[ i ][ j ][ 2 ]);
+
+                    // texture coordinate
+                    if ( j==0 )  {  vertData.append(1);  vertData.append(0);  }
+                    if ( j==1 )  {  vertData.append(0);  vertData.append(0);  }
+                    if ( j==2 )  {  vertData.append(0);  vertData.append(1);  }
+                    if ( j==3 )  {  vertData.append(1);  vertData.append(1);  }
+                }
+            }
+
+            if ( ! imageBuffer->bind() )
+                QMessageBox::critical(this, "False", "vbo2 bind()");
+
+            imageBuffer->allocate( vertData.constData(), vertData.count() * sizeof( GLfloat ) );
+
+
+//            QOpenGLTexture * imageTexture = new QOpenGLTexture( QImage( "../Textures/" + imageFiles.at( i ) ) );
+            Texture_ES * imageTexture = new Texture_ES( "../tapadita-ra/images/" + imageFiles.at( i ));
+            imageTexture->tex->setMinificationFilter( QOpenGLTexture::Nearest );
+            imageTexture->tex->setMagnificationFilter( QOpenGLTexture::Linear );
+            qDebug()<<imageTexture->name;
+
+
+        vImageBuffer->append( imageBuffer );
+        vImageTexture->append( imageTexture );
+        }
 #else
-    QDir directory( APPLICATION_PATH "Textures" );
+    qDebug()<<"no se usa loadTextures() sin OpenGlES";
 #endif
-
-    QStringList fileFilter;
-    fileFilter << "*.jpg" << "*.png" << "*.bmp" << "*.gif";
-    QStringList imageFiles = directory.entryList( fileFilter );
-
-    for ( int i = 0; i < imageFiles.size(); i++ )
-    {
-        textures->append( new Texture( imageFiles.at( i ) ) );
-        QString textureUri = APPLICATION_PATH "Textures/" + imageFiles.at( i );
-
-        Mat textureMat = imread( textureUri.toStdString() );
-        flip( textureMat, textureMat, 0 );
-        textures->last()->mat = textureMat;
-        textures->last()->generateFromMat();
-    }
 }
 
 void Scene::addTexture(QString imagen){
-
+#ifndef OPENGL_ES
     textures->append(new Texture(imagen));
     Mat textureMat = imread( imagen.toStdString() );
     flip( textureMat, textureMat, 0 );
     textures->last()->mat = textureMat;
     textures->last()->generateFromMat();
+#else
+
+    QOpenGLBuffer * imageBuffer = new QOpenGLBuffer( QOpenGLBuffer::VertexBuffer );
+
+    imageBuffer->create();
+
+    static const int coords[1][4][3] = { { { +1, -1, 0 }, { -1, -1, 0 }, { -1, 0, 0 }, { +1, 0, 0 } } };
+
+    QVector<GLfloat> vertData;
+    for (int i = 0; i < 1; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            // vertex position
+            vertData.append( coords[i][j][0]);
+            vertData.append( coords[i][j][1]);
+            vertData.append( coords[ i ][ j ][ 2 ]);
+
+            // texture coordinate
+            if ( j==0 )  {  vertData.append(1);  vertData.append(0);  }
+            if ( j==1 )  {  vertData.append(0);  vertData.append(0);  }
+            if ( j==2 )  {  vertData.append(0);  vertData.append(1);  }
+            if ( j==3 )  {  vertData.append(1);  vertData.append(1);  }
+        }
+    }
+
+    if ( ! imageBuffer->bind() )
+        QMessageBox::critical(this, "False", "vbo2 bind()");
+
+    imageBuffer->allocate( vertData.constData(), vertData.count() * sizeof( GLfloat ) );
+
+    Texture_ES * imageTexture = new Texture_ES( imagen );
+    imageTexture->tex->setMinificationFilter( QOpenGLTexture::Nearest );
+    imageTexture->tex->setMagnificationFilter( QOpenGLTexture::Linear );
+    qDebug()<<imageTexture->name;
+
+    vImageBuffer->append( imageBuffer );
+    vImageTexture->append( imageTexture );
+
+
+#endif
 }
 
 void Scene::loadModels()
@@ -271,12 +351,8 @@ void Scene::loadVideos()
 
 void Scene::initializeGL()
 {
+#ifndef OPENGL_ES
     initializeGLFunctions();
-
-    glClearColor( 0, 0, 0, 0 );
-    glShadeModel( GL_SMOOTH );
-    glEnable( GL_DEPTH_TEST );
-
     GLfloat lightAmbient[4]; lightAmbient[0] = 0.5f;  lightAmbient[1] = 0.5f;
             lightAmbient[2] = 0.5f;  lightAmbient[3] = 1.0f;
 
@@ -302,6 +378,20 @@ void Scene::initializeGL()
 
     loadVideos();
     emit message( "Videos cargados" );
+    glShadeModel( GL_SMOOTH );
+#else
+    initializeOpenGLFunctions();
+    this->loadTextures();
+
+    this->crearProgram();
+
+    this->crearCam();
+    geometries = new GeometryEngine;
+#endif
+
+    glClearColor( 0, 0, 0, 0 );
+
+    glEnable( GL_DEPTH_TEST );    
 }
 
 void Scene::resizeGL( int width, int height )
@@ -312,7 +402,7 @@ void Scene::resizeGL( int width, int height )
 void Scene::paintGL()
 {
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-
+#ifndef OPENGL_ES
     glMatrixMode( GL_PROJECTION );
     glLoadIdentity();
 
@@ -402,6 +492,7 @@ void Scene::paintGL()
                         case QRCode::ESTADO::triangulation:
                             drawBox(jug->getFoto_triangulacion(), detectedMarkers.at( j ).ssize, 100 * coefTamano);
                             qrc->updatePuntaje(0);
+                            drawSheet("/home/andres/proyectosQT/github/tapadita-ra/images/calavera5.png", detectedMarkers.at( j ).ssize, 100 * coefTamano);
                             break;
 
                         default:
@@ -419,7 +510,119 @@ void Scene::paintGL()
 
     // Fin: Gráfico en marcadores
     glFlush();
+#else
+    // primero dibujo en el plano que contendra la imagen de la camara
+    this->drawCamera();
 
+    if( detectedMarkers.size() > 0 )  {        
+
+        double projectionMatrix[16];
+        cameraParameters->glGetProjectionMatrix( cv::Size2i( 640, 480 ),
+                                                 cv::Size2i( 640, 480 ),
+                                                 projectionMatrix, 0.05, 10 );
+        // Inicio: Gráfico en marcadores
+
+        /* itero sobre la cantidad de jugadores, y por cada jugador, pregunto
+         * si entre los markers detectados, el marker corresponde a ese jugador
+         * en caso de ser cierto, dibujo la imagen de ese jugador
+        */
+        float coefTamano = 1;
+
+        QVector<Jugador*> * vp = Jugador::getJugadoresActuales();
+        for(int i = 0; i < vp->size(); i++){
+
+                Jugador * jug = vp->at(i);
+                QString fp = jug->getFoto_perfil();
+                for( unsigned int j = 0 ; j < detectedMarkers.size() ; j++ )
+                {
+                    double modelview_matrix[ 16 ];
+                    detectedMarkers.operator []( j ).glGetModelViewMatrix( modelview_matrix );
+
+                    QMatrix4x4 projection;
+                    QMatrix4x4 modelView;
+
+                    projection( 0, 0 ) = projectionMatrix[ 0 ];
+                    projection( 1, 0 ) = projectionMatrix[ 1 ];
+                    projection( 2, 0 ) = projectionMatrix[ 2 ];
+                    projection( 3, 0 ) = projectionMatrix[ 3 ];
+                    projection( 0, 1 ) = projectionMatrix[ 4 ];
+                    projection( 1, 1 ) = projectionMatrix[ 5 ];
+                    projection( 2, 1 ) = projectionMatrix[ 6 ];
+                    projection( 3, 1 ) = projectionMatrix[ 7 ];
+                    projection( 0, 2 ) = projectionMatrix[ 8 ];
+                    projection( 1, 2 ) = projectionMatrix[ 9 ];
+                    projection( 2, 2 ) = projectionMatrix[ 10 ];
+                    projection( 3, 2 ) = projectionMatrix[ 11 ];
+                    projection( 0, 3 ) = projectionMatrix[ 12 ];
+                    projection( 1, 3 ) = projectionMatrix[ 13 ];
+                    projection( 2, 3 ) = projectionMatrix[ 14 ];
+                    projection( 3, 3 ) = projectionMatrix[ 15 ];
+
+                    modelView( 0, 0 ) = modelview_matrix[ 0 ];
+                    modelView( 1, 0 ) = modelview_matrix[ 1 ];
+                    modelView( 2, 0 ) = modelview_matrix[ 2 ];
+                    modelView( 3, 0 ) = modelview_matrix[ 3 ];
+                    modelView( 0, 1 ) = modelview_matrix[ 4 ];
+                    modelView( 1, 1 ) = modelview_matrix[ 5 ];
+                    modelView( 2, 1 ) = modelview_matrix[ 6 ];
+                    modelView( 3, 1 ) = modelview_matrix[ 7 ];
+                    modelView( 0, 2 ) = modelview_matrix[ 8 ];
+                    modelView( 1, 2 ) = modelview_matrix[ 9 ];
+                    modelView( 2, 2 ) = modelview_matrix[ 10 ];
+                    modelView( 3, 2 ) = modelview_matrix[ 11 ];
+                    modelView( 0, 3 ) = modelview_matrix[ 12 ];
+                    modelView( 1, 3 ) = modelview_matrix[ 13 ];
+                    modelView( 2, 3 ) = modelview_matrix[ 14 ];
+                    modelView( 3, 3 ) = modelview_matrix[ 15 ];
+
+//                    modelView.scale( 0.10 );
+                    modelView.scale( 0.20 );
+                    modelView.translate( x, y, z );
+                    modelView.rotate( angulo, 0, 0, 1 );
+
+                    program->setUniformValue( "projection", projection * modelView );
+
+
+                    //-------------------Inicio: dibujo imagen en marker ----------------------
+                    int mi = detectedMarkers.at(j).id;
+                    // pregunto si el jugador tiene en su vector de ids, el
+                    // id del marcador encontrado y dibujo su foto si esta esa relacion.
+                    if( jug->getVecids()->indexOf(mi) != -1) {
+
+                        // tengo que ver a quien pertenece el id en mi y ver si esta visible el marker
+
+                        for(int k = 0; k < jug->getFichas()->size(); k++){
+                            QRCode * qrc = jug->getFichas()->at(k);
+
+                            if (qrc->getMkr().id == mi) {
+
+                                switch (qrc->getEstado()) {
+                                case QRCode::ESTADO::valid:
+                                    drawSheet(fp, detectedMarkers.at( j ).ssize, 100 * coefTamano);
+                                    break;
+
+                                case QRCode::ESTADO::dead:
+                                    qDebug()<< jug->getNombre();
+                                    drawSheet("../tapadita-ra/images/calavera5.png", detectedMarkers.at( j ).ssize, 100 * coefTamano);
+                                    break;
+
+                                case QRCode::ESTADO::triangulation:
+                                    drawSheet("../tapadita-ra/images/tri-verde-agua.png", detectedMarkers.at( j ).ssize, 100 * coefTamano);
+                                    break;
+
+                                default:
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    // Draw cube geometry
+//                    geometries->drawCubeGeometry( program );
+//                    geometries->drawSheetGeometry( program );
+                }
+            }
+    }
+#endif
 }
 
 void Scene::keyPressEvent( QKeyEvent *event )
@@ -444,12 +647,6 @@ void Scene::keyPressEvent( QKeyEvent *event )
     }
 }
 
-void Scene::drawCamera( unsigned int percentage )
-{
-    qDebug() << "%%%%%%%%%%%%%%%%%%%% drawCamera %%%%%%%%%%%%%%%%%%%%%%%";
-    drawSheet( "CameraTexture", percentage );
-}
-
 void Scene::drawCameraBox(unsigned int percentage )
 {
     qDebug() << "$$$$$$$$$$$$$$$$$$$$ drawCameraBox $$$$$$$$$$$$$$$$$$$$$$$";
@@ -461,6 +658,7 @@ void Scene::drawCameraBox(unsigned int percentage )
  */
 void Scene::drawSheetVinculadas(QString textureName, float sizeMarker, unsigned int percentage )
 {
+
     qDebug() << "################### drawSheetVinculadas #######################";
     sizeMarker = sizeMarker * (float)percentage / (float)100;
 
@@ -490,13 +688,15 @@ void Scene::drawSheetVinculadas(QString textureName, float sizeMarker, unsigned 
  */
 void Scene::drawSheet(QString textureName, float sizeMarker, unsigned int percentage )
 {
+    #ifndef OPENGL_ES
 //    qDebug() << "<<<<<<<<<<<<<<<<< drawSheet <<<<<<<<<<<<<<<<<<<<<<<<<";
     sizeMarker = sizeMarker * (float)percentage / (float)100;
     for( int i = 0; i < textures->size(); i++ )
     {
         if( textures->at( i )->name == textureName )
-        {
+        {            
 //            qDebug() << "------------drawSheet entra a dibujar------------";
+            qDebug()<<textureName;
             glEnable( GL_TEXTURE_2D );
             glBindTexture( GL_TEXTURE_2D, textures->at( i )->id );
             glColor3f( 1, 1, 1 );
@@ -512,6 +712,23 @@ void Scene::drawSheet(QString textureName, float sizeMarker, unsigned int percen
             glDisable( GL_TEXTURE_2D);
         }
     }
+#else
+    sizeMarker = sizeMarker * (float)percentage / (float)100;
+
+    for( int i = 0; i < vImageTexture->size(); i++ )
+    {
+        qDebug()<<"si: " + vImageTexture->at( i )->name +" = "+ textureName;
+        if( vImageTexture->at( i )->name == textureName )
+        {
+            qDebug()<<"Dibujo: " + textureName;
+            vImageTexture->at( i )->tex->bind(0);
+            vImageBuffer->at( i )->bind();
+//            geometries->drawSheetGeometry( program );
+            geometries->drawCubeGeometry( program );
+            break;
+        }
+    }
+#endif
 }
 
 /**
@@ -787,21 +1004,37 @@ void Scene::slot_cambiarCamara(int nCamera)
 
 void Scene::slot_updateScene()  {
 
+#ifndef OPENGL_ES
     videoCapture->operator >>( textures->operator []( 0 )->mat );
     process( textures->operator []( 0 )->mat );
     textures->operator []( 0 )->generateFromMat();
     this->updateGL();
+#else
+    if ( ! videoCapture->isOpened() )
+           return;
+
+       videoCapture->operator >>( matCamera );
+
+       this->process( matCamera );
+
+       update();
+#endif
 }
 
 void Scene::process( Mat &frame )
 {
+    std::vector< Marker > detectedMarkersVector;
+#ifndef OPENGL_ES
     Mat grayscaleMat; cvtColor( frame, grayscaleMat, CV_BGR2GRAY );
     Mat binaryMat; threshold( grayscaleMat, binaryMat, 128, 255, cv::THRESH_BINARY );
-
-    std::vector< Marker > detectedMarkersVector;
     cameraParameters->resize( binaryMat.size() );
     markerDetector->detect( binaryMat, detectedMarkersVector, *cameraParameters, 0.08f );
     detectedMarkers = QVector< Marker >::fromStdVector( detectedMarkersVector );
+#else
+    cameraParameters->resize( frame.size() );
+    markerDetector->detect( frame, detectedMarkersVector, *cameraParameters, 0.08f );
+    detectedMarkers = QVector< Marker >::fromStdVector( detectedMarkersVector );
+#endif
 
     // descripcion del marker
 //    for( int i = 0; i < detectedMarkers.size(); i++ )
@@ -1285,5 +1518,113 @@ void Scene::calcShortestDistance(vector<Point> &cp, Point target, Point &nearest
         }
     }
 }
+
+
+#ifdef OPENGL_ES
+
+void Scene::crearProgram()
+{
+    program = new QOpenGLShaderProgram;
+
+    // Compile vertex shader
+    if ( ! program->addShaderFromSourceFile( QOpenGLShader::Vertex, ":/vshader.glsl" ) )
+        QMessageBox::critical( this, "No se cargo vshader.glsl", "Falla" );
+
+    // Compile fragment shader
+    if ( ! program->addShaderFromSourceFile( QOpenGLShader::Fragment, ":/fshader.glsl" ) )
+        QMessageBox::critical( this, "No se cargo fshader.glsl", "Falla" );
+
+    // Link shader pipeline
+    if ( ! program->link() )
+        QMessageBox::critical( this, "No se Linkeo", "Falla" );
+
+    // Bind shader pipeline for use
+    if ( ! program->bind() )
+        QMessageBox::critical( this, "No se bindeo", "Falla" );
+
+}
+
+
+/*
+ * genera las coordenadas (vertices y indices) donde se pegara la imagen de la camara y
+ * los almacena en 'cam_buffer' para que se levante la imagen de la camara
+*/
+void Scene::crearCam()
+{
+    cam_buffer = new QOpenGLBuffer( QOpenGLBuffer::VertexBuffer );
+    cam_buffer->create();
+
+    static const int coords[1][4][3] = { { { +1, -1, -999 }, { -1, -1, -999 }, { -1, +1, -999 }, { +1, +1, -999 } } };
+
+    QVector<GLfloat> vertData;
+    for (int i = 0; i < 1; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            // vertex position
+            vertData.append(coords[ i ][ j ][ 0 ]);
+            vertData.append(coords[ i ][ j ][ 1 ]);
+            vertData.append(coords[ i ][ j ][ 2 ]);
+
+            // texture coordinate
+            if ( j==0 )  {  vertData.append( 1 );  vertData.append( 0 );  }
+            if ( j==1 )  {  vertData.append( 0 );  vertData.append( 0 );  }
+            if ( j==2 )  {  vertData.append( 0 );  vertData.append( 1 );  }
+            if ( j==3 )  {  vertData.append( 1 );  vertData.append( 1 );  }
+        }
+    }
+
+    if ( ! cam_buffer->bind() )
+        QMessageBox::critical(this, "False", "vbo2 bind()");
+
+    cam_buffer->allocate( vertData.constData(), vertData.count() * sizeof( GLfloat ) );
+
+    cam_texture = new QOpenGLTexture( QOpenGLTexture::Target2D );
+    cam_texture->setMinificationFilter( QOpenGLTexture::Nearest );
+    cam_texture->setMagnificationFilter( QOpenGLTexture::Linear );
+    cam_texture->setFormat( QOpenGLTexture::RGBA8_UNorm );
+
+    // Estos valores hay que sacarlo directamente de los Mat que entrega el OpenCV
+    cam_texture->setSize( 640, 480 );
+}
+
+/*
+ * 'cam_buffer' contiene las coodenadas (vertices y indices) donde se dibujara
+ * la imagen de la camara, es por esto que hacemos bind() para utilizar y indicar que vamos
+ * a dibujar sobre ese plano
+ *
+ * 'projection' sera nuestra matriz de projeccion que definimos como orthonormal
+*/
+void Scene::drawCamera()
+{
+    cam_buffer->bind();
+
+    QMatrix4x4 projection;
+    projection.setToIdentity();
+    projection.ortho( -1.0f, +1.0f, +1.0f, -1.0f, -10.0f, 1000.0f );
+
+    program->setUniformValue( "projection", projection );
+    program->enableAttributeArray( PROGRAM_VERTEX_ATTRIBUTE );
+    program->enableAttributeArray( PROGRAM_TEXCOORD_ATTRIBUTE );
+    program->setAttributeBuffer( PROGRAM_VERTEX_ATTRIBUTE, GL_FLOAT, 0, 3, 5 * sizeof( GLfloat ) );
+    program->setAttributeBuffer( PROGRAM_TEXCOORD_ATTRIBUTE, GL_FLOAT, 3 * sizeof( GLfloat ), 2, 5 * sizeof( GLfloat ) );
+
+    if ( matCamera.rows > 0 )  {
+        cv::Mat temp( matCamera.cols, matCamera.rows, matCamera.type() );
+        cvtColor( matCamera, temp, CV_BGR2RGB );
+
+//        cam_texture->setSize( matCamera.cols, matCamera.rows );
+
+        if ( ! cam_texture->isStorageAllocated() )  {
+            cam_texture->allocateStorage();
+        }
+
+        cam_texture->setData( QOpenGLTexture::RGB, QOpenGLTexture::UInt8, temp.data );
+
+        cam_texture->bind();
+
+        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    }
+}
+
+#endif
 
 
