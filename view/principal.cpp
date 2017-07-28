@@ -6,6 +6,7 @@
 #include "view/viewcontroller.h"
 #include "model/jugador.h"
 
+/// Esta clase no esta en uso actualemte.
 
 Principal::Principal(QWidget *parent) :
     QWidget(parent),

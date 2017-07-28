@@ -4,27 +4,6 @@
 #include "model/qrcode.h"
 
 
-/* Junior del futuro:
- *
- * TODO:
- *
- * BUGS:
- *
- * - cuando el marker esta a la misma altura que la linea
- *   donde pasa a estar muerto, ahi el marker queda en estado
- *   valid cuando deberia ser dead o triangulacion.
- *
- *   status: resuelto. => solo tenia que poner <= en el metodo donde mata a los markers
- *
- * - cuando un marker esta a la misma altura que la linea winnerLine
- *   el puntaje se muestra como un valor residual.
- *
- *   status: resuelto => cambie en el metodo whocantriangulate que ahora esta en zona
- *   triangulacion si el centro del marker esta incluido en ambos extremos [].
- *
- *
- *   stylesheet viewcontroller: background: rgb(89, 89, 89)
- */
 #ifndef OPENGL_ES
 Scene::Scene( QWidget *parent ) : QGLWidget( parent ),
 #else
@@ -734,15 +713,15 @@ void Scene::drawSheet(QString textureName, float sizeMarker, unsigned int percen
  */
 void Scene::drawBox( QString textureName, float sizeMarker, unsigned int percentage )
 {
-    qDebug() << """""""""""""""""drawBox""""""""""""""""""""""";
+//    qDebug() << """""""""""""""""drawBox""""""""""""""""""""""";
     sizeMarker = sizeMarker * (float)percentage / (float)100;
 
     for( int i = 0; i < textures->size(); i++ )
     {
-        qDebug()<<"si " + textures->at( i )->name + " es = " + textureName;
+//        qDebug()<<"si " + textures->at( i )->name + " es = " + textureName;
         if( textures->at( i )->name == textureName )
         {
-            qDebug()<<"entro a pintar: " + textureName;
+//            qDebug()<<"entro a pintar: " + textureName;
             glEnable( GL_TEXTURE_2D );
             glBindTexture( GL_TEXTURE_2D, textures->at( i )->id );
             glColor3f( 1, 1, 1 );
@@ -1543,7 +1522,7 @@ void Scene::crearProgram()
 
 
 /*
- * genera las coordenadas (vertices y indices) donde se pegara la imagen de la camara y
+ * genera las coordenadas (vertices e indices) donde se pegara la imagen de la camara y
  * los almacena en 'cam_buffer' para que se levante la imagen de la camara
 */
 void Scene::crearCam()

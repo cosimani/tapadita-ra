@@ -8,7 +8,7 @@ QT += core gui opengl network multimedia widgets sql
 
 TEMPLATE = app
 
-DEFINES += OPENGL_ES
+#DEFINES += OPENGL_ES
 
 DEFINES += NO_DEBUG_ARUCO
 
@@ -190,12 +190,7 @@ FORMS += \
 DISTFILES += \
     README.md \
     Files/db.sqlite \
-    Files/CameraParameters.yml \
-    images/empty_profile.jpg \
-    images/empty_profile2.jpg \
-    images/calavera5.png \
-    images/tri-verde-agua.png \
-    images/tri-amarillo.png
+    Files/CameraParameters.yml
 
 
 RESOURCES += \

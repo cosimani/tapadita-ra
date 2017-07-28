@@ -26,8 +26,8 @@ void Jugador::updatePuntaje()
     int pts = 0;
     for(int i = 0; i < this->getFichas()->size(); i++){
         QRCode * qrc = this->getFichas()->at(i);
-        qDebug() << "qrc points:" << qrc->getPuntaje();
-        qDebug() << qrc->getCordY();
+//        qDebug() << "qrc points:" << qrc->getPuntaje();
+//        qDebug() << qrc->getCordY();
 
         pts += qrc->getPuntaje();
     }

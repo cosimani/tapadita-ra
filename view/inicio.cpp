@@ -103,10 +103,7 @@ bool Inicio::insertPlayersInDB()
             jug->setFoto_triangulacion(ft.at(j));
             // consultar el id del jugador y setearselo
             int nro_jug = Database::getInstance()->getLastRow("jugadores", "nro_jugador");
-//            qDebug() << "ultimo jug:" << nro_jug;
             jug->setNro_jugador(nro_jug);
-
-//            qDebug() << "size:" << vc->ui->juego->getPuntajes().size() << "vuelta:" << i;
             jug->setPuntaje( vc->ui->juego->getPuntajes().at(j) );
             vc->ui->juego->getPuntajes().at(j)->setPuntajeName( jug->getNombre() );
 
@@ -163,6 +160,7 @@ bool Inicio::insertVinculosInDB()
         }
     }
 
+    /// No se usa mas el marker especial. pero lo dejo.
 
     // cargo el marker especial
     QStringList vinculos;
