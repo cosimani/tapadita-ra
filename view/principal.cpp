@@ -6,6 +6,7 @@
 #include "view/viewcontroller.h"
 #include "model/jugador.h"
 
+/// Esta clase no esta en uso actualemte.
 
 Principal::Principal(QWidget *parent) :
     QWidget(parent),
@@ -55,13 +56,15 @@ void Principal::initPrincipal()
        consultar en la bd todos los especiales (podrian ser los
        que no tienen recurso de la tabla vinculos en null).
     */
+#ifndef OPENGL_ES
     QString targetPath("/home/jrjs/obj.png");
     ui->scene->addTexture(targetPath);
+#endif
 
-    QString deadMarkerPath("/home/jrjs/proyectos-qt/tapadita-ra/images/calavera5.png");
+    QString deadMarkerPath("../tapadita-ra/images/calavera5.png");
     ui->scene->addTexture(deadMarkerPath);
 
-    QString triangulacionMarkerPath("/home/jrjs/proyectos-qt/tapadita-ra/images/tri-verde-agua.png");
+    QString triangulacionMarkerPath("../tapadita-ra/images/tri-verde-agua.png");
     ui->scene->addTexture(triangulacionMarkerPath);
 
     // cuando se llama a este metodo, comienza a estar visible esta clase

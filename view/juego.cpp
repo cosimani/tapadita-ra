@@ -1,16 +1,6 @@
 #include "juego.h"
 #include "ui_juego.h"
 
-/* Junior del futuro:
- *
- * branch: Puntaje
- *
- * TODO:
- *
- * 1- verificar que funciona el metodo initJuego y se carga todo lo de la carperta images
- * 2- cambiar que ahora se muestre el widget juego en vez de principal
- * 3- agregarle puntaje a groupbox de la vista juego (hacer el sistema de puntajes)
- */
 
 Juego::Juego(QWidget *parent) :
     QWidget(parent),
@@ -65,8 +55,6 @@ void Juego::initJuego()
 
     ui->scene->getSceneTimer()->start(10);
 }
-
-
 
 /**
  * @brief Principal::cargarCamaras metodo que busca las camaras disponibles

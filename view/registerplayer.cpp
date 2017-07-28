@@ -3,9 +3,6 @@
 
 #include<QDebug>
 
-/**
- *  TERMINAR ESTO: FALTAN QUE REGISTER PLAYER TOME ESTO Y SETEAR A LAS VISTAS LOS CAMBIOS
- */
 
 RegisterPlayer::RegisterPlayer(QWidget *parent) :
     QWidget(parent),

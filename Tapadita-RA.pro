@@ -8,6 +8,8 @@ QT += core gui opengl network multimedia widgets sql
 
 TEMPLATE = app
 
+#DEFINES += OPENGL_ES
+
 DEFINES += NO_DEBUG_ARUCO
 
 DEFINES += CAMARAOPENCV #cuando este definida se enumeraran las camaras con Opencv
@@ -136,7 +138,8 @@ SOURCES += main.cpp\
     model/jugador.cpp \
     model/qrcode.cpp \
     view/juego.cpp \
-    view/puntaje.cpp
+    view/puntaje.cpp \
+    controller/geometryengine.cpp
 
 HEADERS += controller/model.h \
            view/scene.h \
@@ -170,7 +173,9 @@ HEADERS += controller/model.h \
     model/jugador.h \
     model/qrcode.h \
     view/juego.h \
-    view/puntaje.h
+    view/puntaje.h \
+    controller/texture_es.h \
+    controller/geometryengine.h
 
 FORMS += \
     view/viewcontroller.ui \
@@ -185,9 +190,9 @@ FORMS += \
 DISTFILES += \
     README.md \
     Files/db.sqlite \
-    Files/CameraParameters.yml \
-    images/empty_profile.jpg \
-    images/empty_profile2.jpg \
-    images/calavera5.png \
-    images/tri-verde-agua.png \
-    images/tri-amarillo.png
+    Files/CameraParameters.yml
+
+
+RESOURCES += \
+    shaders.qrc
+

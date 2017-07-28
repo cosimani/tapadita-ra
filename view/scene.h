@@ -41,14 +41,51 @@
 #include "model/jugador.h"
 #include "controller/cvdrawing.h"
 
+#ifdef OPENGL_ES
 
+#define PROGRAM_VERTEX_ATTRIBUTE 0
+#define PROGRAM_TEXCOORD_ATTRIBUTE 1
+
+#include <QOpenGLWidget>
+#include <QOpenGLBuffer>
+#include <QOpenGLTexture>
+#include <QOpenGLFunctions>
+#include <QOpenGLShaderProgram>
+#include "controller/texture_es.h"
+#include "controller/geometryengine.h"
+#endif
 
 using namespace cv;
 using namespace std;
 using namespace aruco;
 
+#ifdef OPENGL_ES
+
+class Scene : public QOpenGLWidget, protected QOpenGLFunctions  {
+    Q_OBJECT
+
+    void crearProgram();
+    void crearCam();    
+    void drawCamera();
+
+    QOpenGLShaderProgram * program;
+    QOpenGLBuffer * cam_buffer;
+    QOpenGLTexture * cam_texture;
+
+    QVector< QOpenGLBuffer * > * vImageBuffer;
+    QVector< Texture_ES * > * vImageTexture;
+
+    Mat matCamera;
+    GeometryEngine *geometries;
+
+    GLfloat x, y, z, angulo;
+
+#else
+
 class Scene : public QGLWidget, protected QGLFunctions  {
     Q_OBJECT
+
+#endif
 
 private:
     int nCamera;
@@ -79,7 +116,6 @@ private:
 
     void process( Mat &frame );
 
-    void drawCamera(unsigned int percentage = 100 );
     void drawCameraBox( unsigned int percentage = 100 );
     void drawSheetVinculadas( QString textureName, float sizeMarker, unsigned int percentage = 100 );
     void drawSheet( QString textureName, float sizeMarker, unsigned int percentage = 100 );
