@@ -1,10 +1,12 @@
 #include "juego.h"
 #include "ui_juego.h"
 
+#include "ui_settings.h"
 
 Juego::Juego(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::Juego)
+    ui(new Ui::Juego),
+    settings( new Settings() )
 {
     ui->setupUi(this);
 
@@ -15,6 +17,16 @@ Juego::Juego(QWidget *parent) :
 
     puntajes.append(ui->puntaje1);
     puntajes.append(ui->puntaje2);
+
+    // configuracion de settings
+    ui->gbSettings->setMinimumHeight(this->width()/3);
+    settings->ui->sSize->setRange(0, 100);
+    slot_MarkerSize(settings->ui->sSize->value());
+
+
+    connect(ui->pbSettings, SIGNAL(clicked(bool)), this, SLOT(slot_Settings()));
+    connect(settings, SIGNAL(sig_ChangedMarkerSize(int)), this, SLOT(slot_MarkerSize(int)));
+    connect(settings, SIGNAL(sig_ChangedProfilePicture(QString, int)), this, SLOT(slot_newProfilePicture(QString, int)));
 }
 
 Juego::~Juego()
@@ -120,6 +132,41 @@ void Juego::cargarCamaras()
 #endif
 }
 
+
+void Juego::slot_Settings()
+{
+    qDebug() << "void Juego::slot_Settings()";
+
+    // setear nombre de los jugadores en los botones
+    settings->ui->pbPlayer1->setText(ui->puntaje1->getPlayerName());
+    settings->ui->pbPlayer2->setText(ui->puntaje2->getPlayerName());
+
+    // settear el valor del slider
+    settings->setMarkerSizeValue( settings->ui->sSize->value() );
+
+
+
+    settings->show();
+}
+
+void Juego::slot_MarkerSize(int size)
+{
+    qDebug() << "size:" << size;
+    int oldMax = settings->ui->sSize->maximum();
+    int oldMin = settings->ui->sSize->minimum();
+    int oldRange = oldMax - oldMin;
+    int newRange = MAXMARKERSIZE - MINMARKERSIZE;
+    int newValue = ((( size - oldMin ) * newRange) / oldRange) + 50;
+
+    ui->scene->setMarkerSize(newValue);
+}
+
+void Juego::slot_newProfilePicture(QString newPath, int player)
+{
+    QVector<Jugador*> *vp = Jugador::getJugadoresActuales();
+    vp->at(player - 1)->setFoto_perfil(newPath);
+    ui->scene->addTexture(vp->at(player - 1)->getFoto_perfil());
+}
 
 void Juego::slot_cbCamarasChanged(int nuevoIndex)
 {

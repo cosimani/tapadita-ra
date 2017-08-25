@@ -6,6 +6,8 @@
 #include <QWidget>
 #include "model/database.hpp"
 
+#include <QDebug>
+
 namespace Ui {
 class ViewController;
 }

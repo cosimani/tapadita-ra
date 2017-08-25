@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>203</width>
-    <height>70</height>
+    <height>77</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,18 +15,18 @@
   </property>
   <property name="styleSheet">
    <string notr="true">QLabel#lName{
-	font: 16pt &quot;Ume P Gothic C5&quot;;
-	color:rgb(255, 0, 0)
+	font: 22pt &quot;Sans Serif&quot;;
+	color:rgb(0, 85, 255)
 }
 
 QLabel#lPuntos{
-	font: 16pt &quot;Ume P Gothic C5&quot;;
-	color:rgb(0, 255, 0)
+	font: 22pt &quot;Sans Serif&quot;;
+	color:rgb(204, 0, 0)
 }
 
 QLabel#lPuntaje{
-	font: 16pt &quot;Ume P Gothic C5&quot;;
-	color:rgb(90, 122, 171)
+	font: 22pt &quot;Sans Serif&quot;;
+	color:rgb(188, 188, 176)
 }</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">

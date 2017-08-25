@@ -43,12 +43,16 @@ QPushButton#pbstart{
     <widget class="QLabel" name="ltitle">
      <property name="font">
       <font>
-       <family>Ume P Gothic C5</family>
-       <pointsize>32</pointsize>
+       <family>Sans Serif</family>
+       <pointsize>36</pointsize>
        <weight>50</weight>
        <italic>false</italic>
        <bold>false</bold>
       </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">font: 36pt &quot;Sans Serif&quot;;
+</string>
      </property>
      <property name="text">
       <string>Tapadita RA</string>

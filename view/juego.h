@@ -1,8 +1,14 @@
 #ifndef JUEGO_H
 #define JUEGO_H
 
+#define MINMARKERSIZE 50
+#define MAXMARKERSIZE 200
+
 #include <QWidget>
+#include <QString>
 #include "view/puntaje.h"
+#include "view/settings.h"
+#include <QDebug>
 
 namespace Ui {
 class Juego;
@@ -19,6 +25,8 @@ public:
     Ui::Juego *ui;
     QVector<Puntaje *> puntajes;
 
+    Settings * settings;
+
     void initJuego();
     void cargarCamaras();
 
@@ -28,6 +36,9 @@ public:
 
 private slots:
     void slot_cbCamarasChanged(int nuevoIndex);
+    void slot_Settings();
+    void slot_MarkerSize(int size);
+    void slot_newProfilePicture(QString newPath, int player);
 };
 
 #endif // JUEGO_H
