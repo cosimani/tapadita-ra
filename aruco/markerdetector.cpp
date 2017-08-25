@@ -124,13 +124,10 @@ void MarkerDetector::detect ( const  cv::Mat &input,std::vector<Marker> &detecte
 void MarkerDetector::detect ( const  cv::Mat &input,vector<Marker> &detectedMarkers,Mat camMatrix ,Mat distCoeff ,float markerSizeMeters ,bool setYPerpendicular) throw ( cv::Exception )
 {
 
-
     //it must be a 3 channel image
     if ( input.type() ==CV_8UC3 )   cv::cvtColor ( input,grey,CV_BGR2GRAY );
     else     grey=input;
 
-
-//     cv::cvtColor(grey,_ssImC ,CV_GRAY2BGR); //DELETE
 
     //clear input data
     detectedMarkers.clear();
@@ -305,11 +302,10 @@ void MarkerDetector::detectRectangles(const cv::Mat &thresImg,vector<MarkerCandi
 
     for ( unsigned int i=0;i<contours2.size();i++ )
     {
-
-
         //check it is a possible element by first checking is has enough points
         if ( minSize< contours2[i].size() &&contours2[i].size()<maxSize  )
         {
+
             //approximate to a poligon
             approxPolyDP (  contours2[i]  ,approxCurve , double ( contours2[i].size() ) *0.05 , true );
             // 				drawApproxCurve(copy,approxCurve,Scalar(0,0,255));
@@ -358,7 +354,6 @@ void MarkerDetector::detectRectangles(const cv::Mat &thresImg,vector<MarkerCandi
     valarray<bool> swapped(false,MarkerCanditates.size());//used later
     for ( unsigned int i=0;i<MarkerCanditates.size();i++ )
     {
-
         //trace a line between the first and second point.
         //if the thrid point is at the right side, then the points are anti-clockwise
         double dx1 = MarkerCanditates[i][1].x - MarkerCanditates[i][0].x;
@@ -423,7 +418,6 @@ void MarkerDetector::detectRectangles(const cv::Mat &thresImg,vector<MarkerCandi
                 reverse(OutMarkerCanditates.back().contour.begin(),OutMarkerCanditates.back().contour.end());//????
         }
     }
-
 }
 
 /************************************

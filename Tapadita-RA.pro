@@ -139,7 +139,8 @@ SOURCES += main.cpp\
     model/qrcode.cpp \
     view/juego.cpp \
     view/puntaje.cpp \
-    controller/geometryengine.cpp
+    controller/geometryengine.cpp \
+    view/settings.cpp
 
 HEADERS += controller/model.h \
            view/scene.h \
@@ -175,7 +176,8 @@ HEADERS += controller/model.h \
     view/juego.h \
     view/puntaje.h \
     controller/texture_es.h \
-    controller/geometryengine.h
+    controller/geometryengine.h \
+    view/settings.h
 
 FORMS += \
     view/viewcontroller.ui \
@@ -185,7 +187,8 @@ FORMS += \
     view/inicio.ui \
     view/principal.ui \
     view/juego.ui \
-    view/puntaje.ui
+    view/puntaje.ui \
+    view/settings.ui
 
 DISTFILES += \
     README.md \
