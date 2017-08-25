@@ -18,6 +18,7 @@ public:
 
     void updatePuntos(int puntos);
     void setPuntajeName(QString name);
+    QString getPlayerName();
 
 private:
     Ui::Puntaje *ui;

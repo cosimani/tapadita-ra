@@ -2,6 +2,7 @@
 #include <QApplication>
 #include "ui_principal.h"  // Necesario para acceder al ui de Principal
 #include "model/qrcode.h"
+#include "ui_juego.h"
 
 
 #ifndef OPENGL_ES
@@ -29,8 +30,15 @@ Scene::Scene(QWidget *parent) : QOpenGLWidget(parent),
 
                                   zRotationVelocity( 0 ),
 
+                                  winnerLine(250),
+                                  zonaTriangulacion(350),
+
+//                                  markerSize(64),
+
                                   juego ( (Juego*) parent )
 {
+    // para que detecte las teclas cuando clickeo el widget o con tab
+    this->setFocusPolicy(Qt::FocusPolicy::StrongFocus);
 
     videoCapture = new cv::VideoCapture();
 
@@ -119,12 +127,22 @@ void Scene::setSceneTimer(QTimer *value)
     sceneTimer = value;
 }
 
+int Scene::getMarkerSize() const
+{
+    return markerSize;
+}
+
+void Scene::setMarkerSize(int value)
+{
+    markerSize = value;
+}
+
 void Scene::loadTextures()
 {
 #ifdef OPENGL_ES
     QDir directory( "../tapadita-ra/images" );
 
-        QStringList fileFilter;
+    QStringList fileFilter;
         fileFilter << "*.jpg" << "*.png" << "*.bmp" << "*.gif";
         QStringList imageFiles = directory.entryList( fileFilter );        
 
@@ -346,17 +364,6 @@ void Scene::initializeGL()
 
     textures->append( new Texture( "CameraTexture" ) );
 
-    loadTextures();
-    emit message( "Texturas cargadas" );
-
-    actualizarTexturas();
-    emit message( "Texturas vinculadas cargadas" );
-
-    loadModels();
-    emit message( "Modelos cargados" );
-
-    loadVideos();
-    emit message( "Videos cargados" );
     glShadeModel( GL_SMOOTH );
 #else
     initializeOpenGLFunctions();
@@ -405,7 +412,6 @@ void Scene::paintGL()
     glEnd();
 
 
-
     glDisable( GL_TEXTURE_2D );
 
     // Fin: Gráfico de cámara
@@ -439,7 +445,7 @@ void Scene::paintGL()
 
             // aca se toma la matrix de cada marcador
             detectedMarkers.operator []( j ).glGetModelViewMatrix( modelview_matrix );
-            // y se setea la matrix de ese marcador, para que la pueda dibujar y seguir
+            // y se setea la matrix de ese mmarkerSizearcador, para que la pueda dibujar y seguir
             glLoadMatrixd( modelview_matrix );
 
 
@@ -459,17 +465,17 @@ void Scene::paintGL()
 
                         switch (qrc->getEstado()) {
                         case QRCode::ESTADO::valid:
-                            drawBox(fp, detectedMarkers.at( j ).ssize, 100 * coefTamano);
+                            drawBox(fp, detectedMarkers.at( j ).ssize, markerSize);
                             qrc->updatePuntaje(100);
                             break;
 
                         case QRCode::ESTADO::dead:
-                            drawBox(jug->getFoto_muerte(), detectedMarkers.at( j ).ssize, 100 * coefTamano);
+                            drawBox(jug->getFoto_muerte(), detectedMarkers.at( j ).ssize, markerSize);
                             qrc->updatePuntaje(-50);
                             break;
 
                         case QRCode::ESTADO::triangulation:
-                            drawBox(jug->getFoto_triangulacion(), detectedMarkers.at( j ).ssize, 100 * coefTamano);
+                            drawBox(jug->getFoto_triangulacion(), detectedMarkers.at( j ).ssize, markerSize);
                             qrc->updatePuntaje(0);                            
                             break;
 
@@ -601,21 +607,36 @@ void Scene::paintGL()
 
 void Scene::keyPressEvent( QKeyEvent *event )
 {
+
     switch( event->key() )  {
+
     case Qt::Key_M:
         if ( juego->isFullScreen() )  {
             juego->showMaximized();
-//            juego->setVisibleSliders(true);
         }
         else  {
             juego->showFullScreen();;
-//            juego->setVisibleSliders(false);
         }
         break;
 
     case Qt::Key_Escape:
         qApp->quit();
         break;
+
+    case Qt::Key_Up:
+        if (juego->ui->cbWinnerLine->isChecked() && winnerLine > 0 && winnerLine < RESOLUTION_HEIGHT)
+            winnerLine -= 1;
+        if (juego->ui->cbZonaTri->isChecked())
+            zonaTriangulacion -= 1;
+        break;
+
+    case Qt::Key_Down:
+        if (juego->ui->cbWinnerLine->isChecked() && zonaTriangulacion > 0 && zonaTriangulacion < RESOLUTION_HEIGHT)
+            winnerLine += 1;
+        if (juego->ui->cbZonaTri->isChecked())
+            zonaTriangulacion += 1;
+        break;
+
 
     default:;
     }
@@ -981,8 +1002,17 @@ void Scene::slot_cambiarCamara(int nCamera)
 void Scene::slot_updateScene()  {
 
 #ifndef OPENGL_ES
+
     videoCapture->operator >>( textures->operator []( 0 )->mat );
+
+    // invierto la imagen para que se pueda poner la camara de forma horizontal
+    rotate(textures->operator []( 0 )->mat, textures->operator []( 0 )->mat, 180);
+
+    // roto la imagen para tener un efecto espejo
+    cv::flip(textures->operator []( 0 )->mat, textures->operator []( 0 )->mat, 1);
+
     process( textures->operator []( 0 )->mat );
+
     textures->operator []( 0 )->generateFromMat();
     this->updateGL();
 #else
@@ -1012,17 +1042,20 @@ void Scene::process( Mat &frame )
     detectedMarkers = QVector< Marker >::fromStdVector( detectedMarkersVector );
 #endif
 
+
     // descripcion del marker
-//    for( int i = 0; i < detectedMarkers.size(); i++ )
-//        detectedMarkers.at( i ).draw( frame, Scalar( 255, 0, 255 ), 1 );
+//       for( int i = 0; i < detectedMarkers.size(); i++ )
+//           detectedMarkers.at( i ).draw( frame, Scalar( 255, 0, 255 ), 1 );
+
+
 
     QVector<Jugador*> * vp = Jugador::getJugadoresActuales();
 
     clearJugadores(vp);
     initJugadores(vp, detectedMarkers);
 
-    int winnerLine = 150;
-    int zonaTriangulacion = 75;
+//    int winnerLine = 150;
+//    int zonaTriangulacion = 75;
     drawGameLines(frame, winnerLine, zonaTriangulacion);
 
     // obtengo los markers a utilizar
@@ -1035,16 +1068,25 @@ void Scene::process( Mat &frame )
         }
     }
 
-    setDistancesToWinnerLine(vp, winnerLine);
 
-    // primero los que estan afuera de TODO los elimino
+    // seteo la distancia a la winnerLine a cada marker de cada jugador
+    setDistancesToWinnerLine(vp, winnerLine);
+    // primero los que estan afuera de TODO. los elimino
     killOutOfZoneMarkers(vp, zonaTriangulacion);
     // luego determino quien puede triangular y dibujo la triangulacion
     determineWhoCanTriangulate(vp, winnerLine, zonaTriangulacion);
     drawPosibleTriangulation(frame, vp, 3);
     // finalmente, veo quienes quedaron encerrados en una triangulacion y los mato
     determineDeadPlayers(vp, winnerLine, zonaTriangulacion);
+}
 
+/**
+ * @brief Scene::rotate rota el Mat src y lo deja en dst el angulo angle.
+ */
+void Scene::rotate(cv::Mat& src, cv::Mat& dst,  double angle){
+    cv::Point2f ptCp(src.cols*0.5, src.rows*0.5);
+    cv::Mat M = cv::getRotationMatrix2D(ptCp, angle, 1.0);
+    cv::warpAffine(src, dst, M, src.size(), cv::INTER_CUBIC); //Nearest is too rough,
 }
 
 /**
@@ -1084,7 +1126,7 @@ void Scene::killOutOfZoneMarkers(QVector<Jugador *> *vp, int zone)
 
         for(int k = 0; k < j->getFichas()->size(); k++){
             QRCode * qrc = j->getFichas()->at(k);
-            if( qrc->getCordY() <= zone ) {
+            if( qrc->getCordY() >= zone ) {
                 qrc->setVisible(false);
                 qrc->setEstado(QRCode::ESTADO::dead);
             }
@@ -1117,7 +1159,7 @@ void Scene::determineDeadPlayers(QVector<Jugador *> *vp, int winnerLine, int zon
                 // tengo que matar un marker solo si algun marker
                 // esta en la zona de triangulacion
                 // solo le paso un jugador si tiene un marker en zona de triangulacion
-                bool isInTriangulationZone = isInZone(jj, winnerLine, zonaTriangulacion);
+                bool isInTriangulationZone = isInZone(jj, zonaTriangulacion, winnerLine);
 
                 // dos jugadores son el mismo si estan en la misma posicion del vector vp
                 if ( i != n && isInTriangulationZone )
@@ -1173,9 +1215,9 @@ void Scene::drawGameLines(Mat &frame, int winnerLine, int zonaTriangulacion)
     int zona1 = winnerLine + (refLine / 2);
 
     // winner line
-    cv::line(frame, Point(0, winnerLine), Point(640, winnerLine), Scalar(13, 194, 216), 3);
+    cv::line(frame, Point(0, winnerLine), Point(640, winnerLine), Scalar(0, 255, 0), 3);
     // zona de triangulacion
-    cv::line(frame, Point(0,zonaTriangulacion), Point(640, zonaTriangulacion), Scalar(20,117,255), 2);
+    cv::line(frame, Point(0,zonaTriangulacion), Point(640, zonaTriangulacion), Scalar(255,0,0), 2);
     // zona 1000 puntos
 //    cv::line(frame, Point(0,zona1), Point(640, zona1), Scalar(0,255,0), 2);
 }
@@ -1223,7 +1265,7 @@ void Scene::determineWhoCanTriangulate(QVector<Jugador *> *vp, int winnerLine, i
             QRCode * qrc = j->getFichas()->at(k);
             Point p( qrc->getCordX(), qrc->getCordY() );
 
-            if ( qrc->getCordY() >= zonaTriangulacion && qrc->getCordY() <= winnerLine ) {
+            if ( qrc->getCordY() <= zonaTriangulacion && qrc->getCordY() >= winnerLine ) {
                 qrc->setEstado(QRCode::ESTADO::dead);
                 cp.push_back(p);
                 exists = true;

@@ -42,7 +42,7 @@ bool Inicio::registrarJugadores(){
 
     // seteo los colores por defecto de los jugadores (solo 2 colores)
     QVector<QColor> vcw = { QColor(255,255,0), QColor(255,0,255) };
-    QVector<QColor> vct = { QColor(255,0,0), QColor(0,0,255) };
+    QVector<QColor> vct = { QColor(0,255,255), QColor(255,0,255) };
     QVector<Jugador*> *vp = Jugador::getJugadoresActuales();
     for(int i = 0; i < vp->size(); i++) {
         vp->at(i)->setWin_color(vcw.at(i));
@@ -128,15 +128,20 @@ bool Inicio::insertVinculosInDB()
     QVector<Jugador*> *vp = Jugador::getJugadoresActuales();
 
     // cargo los valores por defecto del jugador 1 y 2
-    QVector<int> jf1 = { 106, 111, 112 };
-    QVector<int> jf2 = { 17, 20, 21 };
+    QVector<int> jf1 = { 872, 996, 52, 740 }; // { 167, 111, 112 };
+    QVector<int> jf2 = { 272, 80, 336, 808 }; // { 17, 20, 21 };
     QVector< QVector<int> > vi;
     vi.append(jf1);
     vi.append(jf2);
 
+    if( jf1.size() != jf2.size() ) {
+        qDebug() << "ERROR: un jugador tiene mas markers que otro...\n\n";
+        return false;
+    }
+
     // agrego los id por defecto de cada jugador
     for(int i = 0; i < vp->size(); i++)
-        for(int j = 0; j < 3; j++){
+        for(int j = 0; j < jf1.size(); j++){
             vp->at(i)->getVecids()->append( vi.at(i).at(j) );
         }
 

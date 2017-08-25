@@ -108,6 +108,9 @@ private:
 
     Juego * juego;
 
+    int winnerLine, zonaTriangulacion;
+    int markerSize;
+
     void loadTextures();
     void loadModels();
     void prepareModels();
@@ -147,6 +150,8 @@ private:
     void initJugadores(QVector<Jugador *> *vp, QVector<Marker> &dm);
     void clearJugadores(QVector<Jugador *> *vp);
 
+    void rotate(cv::Mat& src, cv::Mat& dst, double angle);
+
 public:
     Scene( QWidget *parent = 0 );
     ~Scene();
@@ -157,6 +162,9 @@ public:
 
     // jr
     void addTexture(QString imagen);
+
+    int getMarkerSize() const;
+    void setMarkerSize(int value);
 
 protected:
     void initializeGL();

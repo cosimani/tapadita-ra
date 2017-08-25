@@ -23,3 +23,7 @@ void Puntaje::setPuntajeName(QString name)
 {
     ui->lName->setText(name);
 }
+
+QString Puntaje::getPlayerName(){
+    return ui->lName->text();
+}
